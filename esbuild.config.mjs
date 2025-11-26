@@ -19,12 +19,6 @@ const context = await esbuild.context({
 	},
 	entryPoints: ["main.ts"],
 	bundle: true,
-	plugins: [
-		esbuildSvelte({
-		compilerOptions: { css: 'injected' },
-		preprocess: sveltePreprocess(),
-		}),
-	],
 	external: [
 		"obsidian",
 		"electron",
@@ -47,6 +41,12 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
+	plugins: [
+		esbuildSvelte({
+		compilerOptions: { css: 'injected' },
+		preprocess: sveltePreprocess(),
+		}),
+	]
 });
 
 if (prod) {
