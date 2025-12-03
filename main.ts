@@ -2,6 +2,7 @@ import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian'
 
 // Import the Counter Svelte component and the `mount` and `unmount` methods.
 
+// step 1
 import Counter from './svelte-components/Counter.svelte';
 import { mount, unmount } from 'svelte';
 
@@ -9,8 +10,13 @@ import { mount, unmount } from 'svelte';
 
 const VIEW_TYPE_EXPLORER = 'explorer-view'
 
+
+
+
+
 class ExplorerView extends ItemView {
 
+  // step 2
   counter: ReturnType<typeof Counter> | undefined;
 
   constructor(leaf: WorkspaceLeaf) { super(leaf) }
@@ -21,25 +27,28 @@ class ExplorerView extends ItemView {
 
  
   async onOpen() {
+    this.renderView()
+  }
+  
+  
+  
+  private renderView(){
     const c = this.contentEl
     c.empty()
     // c.createEl('h4', { text: 'Explorer view' })
-	
-
-
-
-	// Attach the Svelte component to the ItemViews content element and provide the needed props.
+	  // Attach the Svelte component to the ItemViews content element and provide the needed props.
+    
+    // step 3
     this.counter = mount(Counter, {
       target: this.contentEl,
       props: {
         startCount: 5,
       }
     });
-
-    // Since the component instance is typed, the exported `increment` method is known to TypeScript.
-    this.counter.increment();
   }
 
+
+  
   async onClose() {
     if (this.counter) {
       // Remove the Counter from the ItemView.
