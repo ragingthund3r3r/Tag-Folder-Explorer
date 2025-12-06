@@ -1,4 +1,9 @@
 <script lang="ts">
+
+  import AppSidebar from "$lib/components/app-sidebar.svelte";
+  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+
+
   interface Props {
     startCount: number;
   }
@@ -24,6 +29,9 @@
     Increment
   </button>
 </div>
+<Sidebar.Provider>
+  <AppSidebar />
+</Sidebar.Provider>
 
 <style>
   .counter {
