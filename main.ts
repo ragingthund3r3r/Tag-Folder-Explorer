@@ -2,6 +2,7 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 // Remember to rename these classes and interfaces!
 
+// will clean this 
 interface MyPluginSettings {
 	mySetting: string;
 }
