@@ -5,7 +5,7 @@
     
     "inlineSources": true,
     "module": "ESNext",
-    "target": "ES6",
+    "target": "ESNext",
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -20,6 +20,7 @@
     ], 
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
+    
     "paths": {
       "$lib": ["./src/lib"],
       "$lib/*": ["./src/lib/*"]
@@ -29,5 +30,5 @@
   "include": [
     "**/*.ts",
     "**/*.svelte"
-  ]
+, "mainold.ts.txtt"  ]
 }
