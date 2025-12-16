@@ -4,6 +4,8 @@ import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian'
 
 // step 1
 import Counter from './svelte-components/Counter.svelte';
+import testsidebar from './svelte-components/test_sidebar.svelte';
+
 import { mount, unmount } from 'svelte';
 
  
@@ -18,6 +20,8 @@ class ExplorerView extends ItemView {
 
   // step 2
   counter: ReturnType<typeof Counter> | undefined;
+  sidebar: ReturnType<typeof testsidebar> | undefined;
+
 
   constructor(leaf: WorkspaceLeaf) { super(leaf) }
 
@@ -39,12 +43,20 @@ class ExplorerView extends ItemView {
 	  // Attach the Svelte component to the ItemViews content element and provide the needed props.
     
     // step 3
-    this.counter = mount(Counter, {
-      target: this.contentEl,
-      props: {
-        startCount: 5,
-      }
-    });
+    // this.counter = mount(Counter, {
+    //   target: this.contentEl,
+    //   props: {
+    //     startCount: 5,
+    //   }
+    // });
+
+
+
+
+    this.sidebar = mount(testsidebar, {
+      target: this.contentEl
+    });    
+    console.log("sidebar mounted")
   }
 
 
