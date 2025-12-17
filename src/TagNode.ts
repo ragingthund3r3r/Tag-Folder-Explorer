@@ -72,9 +72,145 @@ export class TagNode implements ITagNode {
         this.children = {};
         this.files = new Set<IFileLeaf>();
         this.app = app;
+        
+        // Automatically create metadata file for this node
+        this.createNewMeta();
     }
     
-    // ==================== GETTER METHODS ====================
+
+    // ==================== CREATE METHODS ====================
+
+    /**
+     * Given a tag name, creates a new child node under this current node
+     * 
+     * Creates a new TagNode as a child of this node. The new child will have
+     * this node as its parent and will be added to the children dictionary.
+     * 
+     * @param newChildTagName - The name of the new child tag node to create
+     * @returns boolean - true if successful, false if node already exists or other issues
+     * 
+     * Used when: Building tree structure, adding new tag branches, tree expansion
+     */
+    addChildNode(newChildTagName: string): boolean {
+        try {
+            // Validate the child tag name
+            if (!newChildTagName || newChildTagName.trim() === '') {
+                return false;
+            }
+            
+            const childName = newChildTagName.trim();
+            
+            // Check if child already exists
+            if (this.children[childName]) {
+                return false; // Child already exists
+            }
+            
+            // Create the child path
+            const childPath = this.path === '' ? childName : this.path + '/' + childName;
+            
+            // Create new child node
+            const childNode = new TagNode(childName, childPath, this, this.app);
+            
+            // Add to children dictionary
+            this.children[childName] = childNode;
+            
+            return true;
+        } catch (error) {
+            console.error('Error adding child node:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Creates a new FileLeaf object under this Tag Node and adds it to the files set
+     * 
+     * Instantiates a new FileLeaf with the provided name and path, then adds it
+     * to this node's files set.
+     * 
+     * @param nameOfFile - The name of the file to create
+     * @param pathToFile - The path to the file in the vault
+     * @returns boolean - true if successful, false otherwise
+     * 
+     * Used when: Adding files to tag locations, building tree from vault scan
+     */
+    createNewFile(nameOfFile: string, pathToFile: string): boolean {
+        try {
+            // Validate inputs
+            if (!nameOfFile || !pathToFile || nameOfFile.trim() === '' || pathToFile.trim() === '') {
+                return false;
+            }
+            
+            // Check if file already exists in this node
+            if (this.getFile(nameOfFile)) {
+                return false; // File already exists
+            }
+            
+
+
+            // Create FileLeaf instance and add it to this node
+            const fileLeaf = new FileLeaf(nameOfFile.trim(), pathToFile.trim(), this.path, this.app);
+            this.files.add(fileLeaf);
+            
+            return true;
+        } catch (error) {
+            console.error('Error creating new file:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Checks if a metadata file corresponding to this node exists, creates it if it doesn't
+     * 
+     * Creates a new metadata file in the `.TagNodeMeta` hidden folder at vault root.
+     * The filename follows the convention: `{path_with_underscores}_{base64_encoded_path}.md`
+     * For example, path "subject/math" becomes "subject_math_c3ViamVjdC9tYXRo.md"
+     * The file contains YAML frontmatter between --- delimiters for metadata storage.
+     * 
+     * @returns boolean - true if created successfully, false if already exists or other issues
+     * 
+     * Used when: Initializing tag metadata, setting up tag properties, first-time tag creation
+     */
+    createNewMeta(): boolean {
+        try {
+            const metadataPath = this.getMetadataFilePath();
+            
+            // Check if metadata file already exists
+            if (fs.existsSync(metadataPath)) {
+                return false; // File already exists
+            }
+            
+            // Ensure .TagNodeMeta folder exists
+            const metaFolderPath = path.dirname(metadataPath);
+            if (!fs.existsSync(metaFolderPath)) {
+                fs.mkdirSync(metaFolderPath, { recursive: true });
+            }
+            
+            // Create initial metadata content with YAML frontmatter
+            const initialContent = `---
+path: "${this.path}"
+name: "${this.name}"
+created: "${new Date().toISOString()}"
+description: |-
+  TagNode Metadata for ${this.name}
+  This file contains metadata for the TagNode at path: \`${this.path}\`
+---
+
+`;
+            
+            // Create the metadata file
+            fs.writeFileSync(metadataPath, initialContent, 'utf8');
+            
+            return true;
+        } catch (error) {
+            console.error('Error creating metadata file:', error);
+            return false;
+        }
+    }
+
+
+
+
+    // ==================== READ METHODS ====================
     
     /**
      * Gets the name of the node object and returns it
@@ -91,6 +227,8 @@ export class TagNode implements ITagNode {
      * Gets the path of the node object and returns it
      * 
      * @returns string - The full nested tag path to this node
+     * 
+     * eg if the folder name is "math" and its parent is "subject", the path is "subject/math"
      * 
      * Used when: Path display, breadcrumb generation, node location identification
      */
@@ -160,7 +298,132 @@ export class TagNode implements ITagNode {
         return null;
     }
     
-    // ==================== NODE MANAGEMENT METHODS ====================
+    
+    /**
+     * Generates the absolute file system path for this TagNode's metadata file
+     * 
+     * Creates the full path using the convention: {vault_path}/.TagNodeMeta/{path_with_underscores}_{base64_encoded_path}.md
+     * For example, path "subject/math" becomes "{vault}/.TagNodeMeta/subject_math_c3ViamVjdC5tYXRo.md"
+     * 
+     * @returns string - The absolute file system path to the metadata file
+     */
+    private getMetadataFilePath(): string {
+        // Get the vault's base path from the app
+        const vaultPath = (this.app.vault.adapter as any).basePath || '';
+        
+        // Replace / with _ for human-readable part
+        const humanReadablePath = this.path.replace(/\//g, '_');
+        
+        // Base64 encode the original path
+        const base64Path = btoa(this.path);
+        
+        // Combine both parts with underscore separator and .md extension
+        const filename = `${humanReadablePath}_${base64Path}.md`;
+        
+        // Return absolute path
+        return path.join(vaultPath, '.TagNodeMeta', filename);
+    }
+    
+
+    /**
+     * Retrieves the metadata inside the metadata file corresponding to this node
+     * 
+     * Reads and parses the metadata file from `.TagNodeMeta` folder for this tag node.
+     * Extracts the YAML frontmatter content between --- delimiters and returns it
+     * as a dictionary/object. Uses the path-based filename convention to locate the file.
+     * 
+     * @returns Record<string, any> - Contents of metadata file YAML frontmatter as dictionary
+     * 
+     * Used when: Reading tag properties, loading tag settings, metadata operations
+     */
+    readMeta(): Record<string, any> {
+        try {
+            const metadataPath = this.getMetadataFilePath();
+            
+            // Check if metadata file exists
+            if (!fs.existsSync(metadataPath)) {
+                return {}; // File doesn't exist, return empty object
+            }
+            
+            // Read file content
+            const fileContent = fs.readFileSync(metadataPath, 'utf8');
+            
+            // Extract YAML frontmatter
+            const yamlMatch = fileContent.match(/^---\n([\s\S]*?)\n---/);
+            if (!yamlMatch) {
+                return {}; // No YAML frontmatter found
+            }
+            
+            const yamlContent = yamlMatch[1];
+            
+            // Parse frontmatter supporting scalars, block scalars, and block lists
+            function parseFrontmatter(yaml: string): Record<string, any> {
+                const result: Record<string, any> = {};
+                if (!yaml) return result;
+
+                const lines = yaml.split('\n');
+                let i = 0;
+                while (i < lines.length) {
+                    const line = lines[i];
+                    // skip empty lines
+                    if (/^\s*$/.test(line)) { i++; continue; }
+
+                    // block list (key:) followed by indented - items
+                    const listKeyMatch = line.match(/^(\w[\w-]*):\s*$/);
+                    if (listKeyMatch) {
+                        const key = listKeyMatch[1];
+                        const items: string[] = [];
+                        i++;
+                        while (i < lines.length && /^\s*-\s+/.test(lines[i])) {
+                            const item = lines[i].replace(/^\s*-\s+/, '').trim();
+                            items.push(item.replace(/^"|"$/g, ''));
+                            i++;
+                        }
+                        result[key] = items;
+                        continue;
+                    }
+
+                    // block scalar (key: | or key: |-) followed by indented lines
+                    const blockMatch = line.match(/^(\w[\w-]*):\s*\|[-]?\s*$/);
+                    if (blockMatch) {
+                        const key = blockMatch[1];
+                        i++;
+                        const blockLines: string[] = [];
+                        while (i < lines.length && /^(\s+).*/.test(lines[i])) {
+                            // remove leading indentation (at least one space)
+                            blockLines.push(lines[i].replace(/^\s{1,}/, ''));
+                            i++;
+                        }
+                        result[key] = blockLines.join('\n');
+                        continue;
+                    }
+
+                    // single-line scalar
+                    const scalarMatch = line.match(/^(\w[\w-]*):\s*(?:"([^"]*)"|'([^']*)'|([^#].*))?$/);
+                    if (scalarMatch) {
+                        const key = scalarMatch[1];
+                        const val = scalarMatch[2] ?? scalarMatch[3] ?? (scalarMatch[4] ? scalarMatch[4].trim() : '');
+                        result[key] = val;
+                        i++;
+                        continue;
+                    }
+
+                    // If none matched, skip the line
+                    i++;
+                }
+                return result;
+            }
+            
+            return parseFrontmatter(yamlContent);
+        } catch (error) {
+            console.error('Error reading metadata file:', error);
+            return {};
+        }
+    }    
+
+
+
+    // ==================== UPDATE METHODS ====================
     
     /**
      * Given the new name of the node, renames the node
@@ -235,224 +498,7 @@ export class TagNode implements ITagNode {
         }
     }
     
-    /**
-     * Given a tag name, creates a new child node under this current node
-     * 
-     * Creates a new TagNode as a child of this node. The new child will have
-     * this node as its parent and will be added to the children dictionary.
-     * 
-     * @param newChildTagName - The name of the new child tag node to create
-     * @returns boolean - true if successful, false if node already exists or other issues
-     * 
-     * Used when: Building tree structure, adding new tag branches, tree expansion
-     */
-    addChildNode(newChildTagName: string): boolean {
-        try {
-            // Validate the child tag name
-            if (!newChildTagName || newChildTagName.trim() === '') {
-                return false;
-            }
-            
-            const childName = newChildTagName.trim();
-            
-            // Check if child already exists
-            if (this.children[childName]) {
-                return false; // Child already exists
-            }
-            
-            // Create the child path
-            const childPath = this.path === '' ? childName : this.path + '/' + childName;
-            
-            // Create new child node
-            const childNode = new TagNode(childName, childPath, this, this.app);
-            
-            // Add to children dictionary
-            this.children[childName] = childNode;
-            
-            return true;
-        } catch (error) {
-            console.error('Error adding child node:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * Given a child tag name, removes that child node from the children list
-     * 
-     * Removes the specified child node and recursively deletes that node and
-     * all its children. This is a destructive operation.
-     * 
-     * @param childTagName - The name of the child tag node to remove
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: Tree pruning, tag removal, tree cleanup operations
-     */
-    removeChildNode(childTagName: string): boolean {
-        try {
-            // Check if child exists
-            if (!this.children[childTagName]) {
-                return false; // Child doesn't exist
-            }
-            
-            // Get the child node
-            const childNode = this.children[childTagName];
-                        
-            // Remove from children dictionary
-            delete this.children[childTagName];
 
-            childNode.deleteMeta();
-            
-            return true;
-        } catch (error) {
-            console.error('Error removing child node:', error);
-            return false;
-        }
-    }
-    
-    // ==================== FILE MANAGEMENT METHODS ====================
-    
-    /**
-     * Creates a new FileLeaf object under this Tag Node and adds it to the files set
-     * 
-     * Instantiates a new FileLeaf with the provided name and path, then adds it
-     * to this node's files set.
-     * 
-     * @param nameOfFile - The name of the file to create
-     * @param pathToFile - The path to the file in the vault
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: Adding files to tag locations, building tree from vault scan
-     */
-    createNewFile(nameOfFile: string, pathToFile: string): boolean {
-        try {
-            // Validate inputs
-            if (!nameOfFile || !pathToFile || nameOfFile.trim() === '' || pathToFile.trim() === '') {
-                return false;
-            }
-            
-            // Check if file already exists in this node
-            if (this.getFile(nameOfFile)) {
-                return false; // File already exists
-            }
-            
-            // Create FileLeaf instance and add it to this node
-            const fileLeaf = new FileLeaf(nameOfFile.trim(), pathToFile.trim(), this.app);
-            this.files.add(fileLeaf);
-            
-            return true;
-        } catch (error) {
-            console.error('Error creating new file:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * Given a filename, removes the FileLeaf object from this node
-     * 
-     * Searches for the file with the specified name in the files set and
-     * removes it from this node.
-     * 
-     * @param fileName - The name of the file to remove
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: File deletion, tag removal from files, tree maintenance
-     */
-    removeFile(fileName: string): boolean {
-        try {
-            // Find the file with the matching name
-            for (const file of this.files) {
-                if (file.getName() === fileName) {
-                    // Remove the file from the set
-                    this.files.delete(file);
-                    return true;
-                }
-            }
-            
-            return false; // File not found
-        } catch (error) {
-            console.error('Error removing file:', error);
-            return false;
-        }
-    }
-    
-    // ==================== METADATA METHODS ====================
-    
-    /**
-     * Generates the absolute file system path for this TagNode's metadata file
-     * 
-     * Creates the full path using the convention: {vault_path}/.TagNodeMeta/{path_with_underscores}_{base64_encoded_path}.md
-     * For example, path "subject/math" becomes "{vault}/.TagNodeMeta/subject_math_c3ViamVjdC5tYXRo.md"
-     * 
-     * @returns string - The absolute file system path to the metadata file
-     */
-    private getMetadataFilePath(): string {
-        // Get the vault's base path from the app
-        const vaultPath = (this.app.vault.adapter as any).basePath || '';
-        
-        // Replace / with _ for human-readable part
-        const humanReadablePath = this.path.replace(/\//g, '_');
-        
-        // Base64 encode the original path
-        const base64Path = btoa(this.path);
-        
-        // Combine both parts with underscore separator and .md extension
-        const filename = `${humanReadablePath}_${base64Path}.md`;
-        
-        // Return absolute path
-        return path.join(vaultPath, '.TagNodeMeta', filename);
-    }
-    
-
-    
-    /**
-     * Checks if a metadata file corresponding to this node exists, creates it if it doesn't
-     * 
-     * Creates a new metadata file in the `.TagNodeMeta` hidden folder at vault root.
-     * The filename follows the convention: `{path_with_underscores}_{base64_encoded_path}.md`
-     * For example, path "subject/math" becomes "subject_math_c3ViamVjdC9tYXRo.md"
-     * The file contains YAML frontmatter between --- delimiters for metadata storage.
-     * 
-     * @returns boolean - true if created successfully, false if already exists or other issues
-     * 
-     * Used when: Initializing tag metadata, setting up tag properties, first-time tag creation
-     */
-    createNewMeta(): boolean {
-        try {
-            const metadataPath = this.getMetadataFilePath();
-            
-            // Check if metadata file already exists
-            if (fs.existsSync(metadataPath)) {
-                return false; // File already exists
-            }
-            
-            // Ensure .TagNodeMeta folder exists
-            const metaFolderPath = path.dirname(metadataPath);
-            if (!fs.existsSync(metaFolderPath)) {
-                fs.mkdirSync(metaFolderPath, { recursive: true });
-            }
-            
-            // Create initial metadata content with YAML frontmatter
-            const initialContent = `---
-path: "${this.path}"
-name: "${this.name}"
-created: "${new Date().toISOString()}"
-description: |-
-  TagNode Metadata for ${this.name}
-  This file contains metadata for the TagNode at path: \`${this.path}\`
----
-
-`;
-            
-            // Create the metadata file
-            fs.writeFileSync(metadataPath, initialContent, 'utf8');
-            
-            return true;
-        } catch (error) {
-            console.error('Error creating metadata file:', error);
-            return false;
-        }
-    }
-    
     /**
      * Updates an existing metadata file with the payload that is provided
      * 
@@ -637,101 +683,73 @@ description: |-
         }
     }
     
+
+
+    // ==================== DELETE METHODS ====================
+    
     /**
-     * Retrieves the metadata inside the metadata file corresponding to this node
+     * Given a child tag name, removes that child node from the children list
      * 
-     * Reads and parses the metadata file from `.TagNodeMeta` folder for this tag node.
-     * Extracts the YAML frontmatter content between --- delimiters and returns it
-     * as a dictionary/object. Uses the path-based filename convention to locate the file.
+     * Removes the specified child node and recursively deletes that node and
+     * all its children. This is a destructive operation.
      * 
-     * @returns Record<string, any> - Contents of metadata file YAML frontmatter as dictionary
+     * @param childTagName - The name of the child tag node to remove
+     * @returns boolean - true if successful, false otherwise
      * 
-     * Used when: Reading tag properties, loading tag settings, metadata operations
+     * Used when: Tree pruning, tag removal, tree cleanup operations
      */
-    readMeta(): Record<string, any> {
+    removeChildNode(childTagName: string): boolean {
         try {
-            const metadataPath = this.getMetadataFilePath();
-            
-            // Check if metadata file exists
-            if (!fs.existsSync(metadataPath)) {
-                return {}; // File doesn't exist, return empty object
+            // Check if child exists
+            if (!this.children[childTagName]) {
+                return false; // Child doesn't exist
             }
             
-            // Read file content
-            const fileContent = fs.readFileSync(metadataPath, 'utf8');
+            // Get the child node
+            const childNode = this.children[childTagName];
+                        
+            // Remove from children dictionary
+            delete this.children[childTagName];
+
+            childNode.deleteMeta();
             
-            // Extract YAML frontmatter
-            const yamlMatch = fileContent.match(/^---\n([\s\S]*?)\n---/);
-            if (!yamlMatch) {
-                return {}; // No YAML frontmatter found
-            }
-            
-            const yamlContent = yamlMatch[1];
-            
-            // Parse frontmatter supporting scalars, block scalars, and block lists
-            function parseFrontmatter(yaml: string): Record<string, any> {
-                const result: Record<string, any> = {};
-                if (!yaml) return result;
-
-                const lines = yaml.split('\n');
-                let i = 0;
-                while (i < lines.length) {
-                    const line = lines[i];
-                    // skip empty lines
-                    if (/^\s*$/.test(line)) { i++; continue; }
-
-                    // block list (key:) followed by indented - items
-                    const listKeyMatch = line.match(/^(\w[\w-]*):\s*$/);
-                    if (listKeyMatch) {
-                        const key = listKeyMatch[1];
-                        const items: string[] = [];
-                        i++;
-                        while (i < lines.length && /^\s*-\s+/.test(lines[i])) {
-                            const item = lines[i].replace(/^\s*-\s+/, '').trim();
-                            items.push(item.replace(/^"|"$/g, ''));
-                            i++;
-                        }
-                        result[key] = items;
-                        continue;
-                    }
-
-                    // block scalar (key: | or key: |-) followed by indented lines
-                    const blockMatch = line.match(/^(\w[\w-]*):\s*\|[-]?\s*$/);
-                    if (blockMatch) {
-                        const key = blockMatch[1];
-                        i++;
-                        const blockLines: string[] = [];
-                        while (i < lines.length && /^(\s+).*/.test(lines[i])) {
-                            // remove leading indentation (at least one space)
-                            blockLines.push(lines[i].replace(/^\s{1,}/, ''));
-                            i++;
-                        }
-                        result[key] = blockLines.join('\n');
-                        continue;
-                    }
-
-                    // single-line scalar
-                    const scalarMatch = line.match(/^(\w[\w-]*):\s*(?:"([^"]*)"|'([^']*)'|([^#].*))?$/);
-                    if (scalarMatch) {
-                        const key = scalarMatch[1];
-                        const val = scalarMatch[2] ?? scalarMatch[3] ?? (scalarMatch[4] ? scalarMatch[4].trim() : '');
-                        result[key] = val;
-                        i++;
-                        continue;
-                    }
-
-                    // If none matched, skip the line
-                    i++;
-                }
-                return result;
-            }
-            
-            return parseFrontmatter(yamlContent);
+            return true;
         } catch (error) {
-            console.error('Error reading metadata file:', error);
-            return {};
+            console.error('Error removing child node:', error);
+            return false;
         }
     }
+    
+
+    /**
+     * Given a filename, removes the FileLeaf object from this node
+     * 
+     * Searches for the file with the specified name in the files set and
+     * removes it from this node.
+     * 
+     * @param fileName - The name of the file to remove
+     * @returns boolean - true if successful, false otherwise
+     * 
+     * Used when: File deletion, tag removal from files, tree maintenance
+     */
+    removeFile(fileName: string): boolean {
+        try {
+            // Find the file with the matching name
+            for (const file of this.files) {
+                if (file.getName() === fileName) {
+                    // Remove the file from the set
+                    this.files.delete(file);
+                    return true;
+                }
+            }
+            
+            return false; // File not found
+        } catch (error) {
+            console.error('Error removing file:', error);
+            return false;
+        }
+    }
+   
     
     /**
      * Deletes the metadata file corresponding to this node

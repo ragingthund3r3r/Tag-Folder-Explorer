@@ -199,6 +199,58 @@ export interface ITagNode {
     
     // ==================== FUNCTIONS ====================
     
+
+    // ==================== CREATE ====================
+
+    /**
+     * Given a tag name, creates a new child node under this current node
+     * 
+     * Creates a new TagNode as a child of this node. The new child will have
+     * this node as its parent and will be added to the children dictionary.
+     * 
+     * @param newChildTagName - The name of the new child tag node to create
+     * @returns boolean - true if successful, false if node already exists or other issues
+     * 
+     * Used when: Building tree structure, adding new tag branches, tree expansion
+     */
+    addChildNode(newChildTagName: string): boolean;
+    
+    
+    
+    /**
+     * Creates a new FileLeaf object under this Tag Node and adds it to the files list
+     * 
+     * Instantiates a new FileLeaf with the provided name and path, then adds it
+     * to this node's files array.
+     * 
+     * @param nameOfFile - The name of the file to create
+     * @param pathToFile - The path to the file in the vault
+     * @returns boolean - true if successful, false otherwise
+     * 
+     * Used when: Adding files to tag locations, building tree from vault scan
+     */
+    createNewFile(nameOfFile: string, pathToFile: string): boolean;
+
+
+    /**
+     * Checks if a metadata file corresponding to this node exists, creates it if it doesn't
+     * 
+     * Creates a new metadata file in the `.TagNodeMeta` hidden folder at vault root.
+     * The filename follows the convention: `{path_with_underscores}_{base64_encoded_path}.md`
+     * For example, path "subject/math" becomes "subject_math_c3ViamVjdC9tYXRo.md"
+     * The file contains YAML frontmatter between --- delimiters for metadata storage.
+     * 
+     * @returns boolean - true if created successfully, false if already exists or other issues
+     * 
+     * Used when: Initializing tag metadata, setting up tag properties, first-time tag creation
+     */
+    createNewMeta(): boolean;
+
+
+
+
+    // ==================== READ ====================
+
     /**
      * Gets the name of the node object and returns it
      * 
@@ -265,6 +317,26 @@ export interface ITagNode {
     getFile(nameOfFile: string): IFileLeaf | null;
     
     /**
+     * Retrieves the metadata inside the metadata file corresponding to this node
+     * 
+     * Reads and parses the metadata file from `.TagNodeMeta` folder for this tag node.
+     * Extracts the YAML frontmatter content between --- delimiters and returns it
+     * as a dictionary/object. Uses the path-based filename convention to locate the file.
+     * 
+     * @returns Record<string, any> - Contents of metadata file YAML frontmatter as dictionary
+     * 
+     * Used when: Reading tag properties, loading tag settings, metadata operations
+     */
+    readMeta(): Record<string, any>;
+
+
+
+
+
+    // ==================== UPDATE ====================
+
+
+    /**
      * Given the new name of the node, renames the node
      * 
      * Updates the name property of this node. Also updates the path with the new name.
@@ -291,72 +363,6 @@ export interface ITagNode {
      */
     editPath(newPath: string): boolean;
     
-    /**
-     * Given a tag name, creates a new child node under this current node
-     * 
-     * Creates a new TagNode as a child of this node. The new child will have
-     * this node as its parent and will be added to the children dictionary.
-     * 
-     * @param newChildTagName - The name of the new child tag node to create
-     * @returns boolean - true if successful, false if node already exists or other issues
-     * 
-     * Used when: Building tree structure, adding new tag branches, tree expansion
-     */
-    addChildNode(newChildTagName: string): boolean;
-    
-    /**
-     * Given a child tag name, removes that child node from the children list
-     * 
-     * Removes the specified child node and recursively deletes that node and
-     * all its children. This is a destructive operation.
-     * 
-     * @param childTagName - The name of the child tag node to remove
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: Tree pruning, tag removal, tree cleanup operations
-     */
-    removeChildNode(childTagName: string): boolean;
-    
-    /**
-     * Creates a new FileLeaf object under this Tag Node and adds it to the files list
-     * 
-     * Instantiates a new FileLeaf with the provided name and path, then adds it
-     * to this node's files array.
-     * 
-     * @param nameOfFile - The name of the file to create
-     * @param pathToFile - The path to the file in the vault
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: Adding files to tag locations, building tree from vault scan
-     */
-    createNewFile(nameOfFile: string, pathToFile: string): boolean;
-    
-    /**
-     * Given a filename, removes the FileLeaf object from this node
-     * 
-     * Searches for the file with the specified name in the files array and
-     * removes it from this node.
-     * 
-     * @param fileName - The name of the file to remove
-     * @returns boolean - true if successful, false otherwise
-     * 
-     * Used when: File deletion, tag removal from files, tree maintenance
-     */
-    removeFile(fileName: string): boolean;
-    
-    /**
-     * Checks if a metadata file corresponding to this node exists, creates it if it doesn't
-     * 
-     * Creates a new metadata file in the `.TagNodeMeta` hidden folder at vault root.
-     * The filename follows the convention: `{path_with_underscores}_{base64_encoded_path}.md`
-     * For example, path "subject/math" becomes "subject_math_c3ViamVjdC9tYXRo.md"
-     * The file contains YAML frontmatter between --- delimiters for metadata storage.
-     * 
-     * @returns boolean - true if created successfully, false if already exists or other issues
-     * 
-     * Used when: Initializing tag metadata, setting up tag properties, first-time tag creation
-     */
-    createNewMeta(): boolean;
     
     /**
      * Updates an existing metadata file with the payload that is provided
@@ -372,19 +378,45 @@ export interface ITagNode {
      */
     updateMeta(payload: Record<string, any>): boolean;
     
-    /**
-     * Retrieves the metadata inside the metadata file corresponding to this node
-     * 
-     * Reads and parses the metadata file from `.TagNodeMeta` folder for this tag node.
-     * Extracts the YAML frontmatter content between --- delimiters and returns it
-     * as a dictionary/object. Uses the path-based filename convention to locate the file.
-     * 
-     * @returns Record<string, any> - Contents of metadata file YAML frontmatter as dictionary
-     * 
-     * Used when: Reading tag properties, loading tag settings, metadata operations
-     */
-    readMeta(): Record<string, any>;
+
     
+
+
+
+    // ==================== DELETE ====================
+    
+    /**
+     * Given a child tag name, removes that child node from the children list
+     * 
+     * Removes the specified child node and recursively deletes that node and
+     * all its children. This is a destructive operation.
+     * 
+     * @param childTagName - The name of the child tag node to remove
+     * @returns boolean - true if successful, false otherwise
+     * 
+     * Used when: Tree pruning, tag removal, tree cleanup operations
+     */
+    removeChildNode(childTagName: string): boolean;
+    
+
+
+    
+    /**
+     * Given a filename, removes the FileLeaf object from this node
+     * 
+     * Searches for the file with the specified name in the files array and
+     * removes it from this node.
+     * 
+     * @param fileName - The name of the file to remove
+     * @returns boolean - true if successful, false otherwise
+     * 
+     * Used when: File deletion, tag removal from files, tree maintenance
+     */
+    removeFile(fileName: string): boolean;
+
+
+
+
     /**
      * Deletes the metadata file corresponding to this node
      * 
