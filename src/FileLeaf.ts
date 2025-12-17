@@ -14,6 +14,7 @@ export class FileLeaf implements IFileLeaf {
 
     private name: string;
     private path: string;
+    private tagpath: string;
     private file: TFile;
     private app: App;
     
@@ -24,13 +25,16 @@ export class FileLeaf implements IFileLeaf {
      * 
      * @param name - The name of the file
      * @param path - The relative path of the file in the vault
+     * @param tagpath - The tag path associated with the file
+     * @param file - The TFile reference of the actual file
      * @param app - The Obsidian App instance for API access
      * 
      * Used when: Building the tree structure from vault scan, adding new files to tree
      */
-    constructor(name: string, path: string, app: App) {
+    constructor(name: string, path: string, tagpath: string, app: App) {
         this.name = name;
         this.path = path;
+        this.tagpath = tagpath;
         this.app = app;
         
         // Get the TFile reference from the vault using the path
@@ -68,243 +72,50 @@ export class FileLeaf implements IFileLeaf {
         return this.path;
     }
     
-    
     /**
-     * Updates the file name when the actual file is renamed externally
+     * Gets the tag path associated with the file
+     *
+     * @returns string - The tag path associated with the file
      * 
-     * We aren't handling renaming files via the plugin, so this function is for
-     * when the name of the file is modified externally and needs to be updated 
-     * for this object. Also recomputes the file property on a file rename.
-     * 
-     * @param newName - The new name of the file
-     * @returns boolean - true if successfully renamed, false otherwise
-     * 
-     * Used when: File system watcher detects file rename, manual tree updates
+     * Used when: Displaying tag paths in UI, tag-based lookups, tree navigation
      */
-    public renameFile(newName: string): boolean {
-        try {
-            // Update the name property
-            this.name = newName;
-            
-            // Reconstruct the path with the new name
-            const pathParts = this.path.split('/');
-            pathParts[pathParts.length - 1] = newName;
-            this.path = pathParts.join('/');
-            
-            // Recompute the file property with the new path
-            const tFile = this.app.vault.getAbstractFileByPath(this.path);
-            if (tFile instanceof TFile) {
-                this.file = tFile;
-                return true;
-            } else {
-                // Revert changes if file not found
-                throw new Error(`File not found at new path: ${this.path}`);
-            }
-        } catch (error) {
-            console.error('Failed to rename file:', error);
-            return false;
-        }
+    public getTagPath(): string {
+        return this.tagpath;
     }
-    
+
     /**
-     * Updates the file path when the file is moved externally
+     * Edits/updates the name of the file
      * 
-     * For now we aren't handling shifting files via the plugin, so this function
-     * is for editing the path of a file when something like a parent folder name
-     * is edited or a file is shifted etc. Recomputes file property as well.
+     * @param newName - The new filename to set
      * 
-     * @param newPath - The new relative path of the file
-     * @returns boolean - true if successfully edited, false otherwise
-     * 
-     * Used when: File system watcher detects file move, folder renames, manual tree updates
+     * Used when: Renaming files, file management operations
      */
-    public editPath(newPath: string): boolean {
-        try {
-            // Update the path property
-            this.path = newPath;
-            
-            // Extract the new name from the new path
-            const pathParts = newPath.split('/');
-            this.name = pathParts[pathParts.length - 1];
-            
-            // Recompute the file property with the new path
-            const tFile = this.app.vault.getAbstractFileByPath(this.path);
-            if (tFile instanceof TFile) {
-                this.file = tFile;
-                return true;
-            } else {
-                // Revert changes if file not found
-                throw new Error(`File not found at new path: ${this.path}`);
-            }
-        } catch (error) {
-            console.error('Failed to edit file path:', error);
-            return false;
-        }
+    public editFileName(newName: string): void {
+        this.name = newName;
     }
-    
+
     /**
-     * Adds a new tag to the metadata of the actual file
+     * Edits/updates the path of the file
      * 
-     * Adds the tag that is provided to the metadata of the actual file that
-     * this FileLeaf represents. Returns a promise since it's a file edit operation.
+     * @param newPath - The new relative path of the file in the vault
      * 
-     * @param newNestedTag - The new nested tag to add (e.g., "subject/math")
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User adds tags through UI, programmatic tag addition, tree manipulation
+     * Used when: Moving files, reorganizing vault structure
      */
-    public async addNewTag(newNestedTag: string): Promise<boolean> {
-        try {
-            // Clean the tag (remove # if present)
-            const cleanTag = newNestedTag.startsWith('#') ? newNestedTag.slice(1) : newNestedTag;
-            
-            // Use Obsidian's built-in API to modify frontmatter
-            await this.app.fileManager.processFrontMatter(this.file, (frontmatter) => {
-                // Initialize tags array if it doesn't exist
-                if (!frontmatter.tags) {
-                    frontmatter.tags = [];
-                } else if (!Array.isArray(frontmatter.tags)) {
-                    // Convert single tag to array
-                    frontmatter.tags = [frontmatter.tags];
-                }
-                
-                // Add the new tag if it's not already present
-                if (!frontmatter.tags.includes(cleanTag)) {
-                    frontmatter.tags.push(cleanTag);
-                }
-            });
-            
-            return true;
-        } catch (error) {
-            console.error('Failed to add new tag:', error);
-            return false;
-        }
+    public editPath(newPath: string): void {
+        this.path = newPath;
     }
-    
+
     /**
-     * Removes a specific tag from the actual file
+     * Edits/updates the tag path associated with the file
      * 
-     * Removes the tag that is provided from both the frontmatter metadata and inline 
-     * content of the actual file. Does not remove further nested tags.
-     * For example: if the tag to remove is "school/subject" then "school/subject/maths" is NOT deleted.
+     * @param newTagPath - The new tag path to associate with the file
      * 
-     * @param tagToRemove - The tag to remove (e.g., "school/subject")
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User removes specific tags through UI, tree cleanup operations
+     * Used when: Retagging files, updating file categorization
      */
-    public async removeTag(tagToRemove: string): Promise<boolean> {
-        try {
-            // Clean the tag (remove # if present)
-            const cleanTag = tagToRemove.startsWith('#') ? tagToRemove.slice(1) : tagToRemove;
-            
-            // First, remove from frontmatter using Obsidian API
-            await this.app.fileManager.processFrontMatter(this.file, (frontmatter) => {
-                if (frontmatter.tags) {
-                    if (Array.isArray(frontmatter.tags)) {
-                        // Remove the tag from the array
-                        frontmatter.tags = frontmatter.tags.filter((tag: string) => tag !== cleanTag);
-                        // Remove the tags property if array is now empty
-                        if (frontmatter.tags.length === 0) {
-                            delete frontmatter.tags;
-                        }
-                    } else if (frontmatter.tags === cleanTag) {
-                        // Remove the single tag
-                        delete frontmatter.tags;
-                    }
-                }
-            });
-            
-            // Second, remove inline tags from file content
-            const content = await this.app.vault.read(this.file);
-            
-            // Format the tag with hash prefix for inline removal
-            const tagPattern = cleanTag.startsWith('#') ? cleanTag : `#${cleanTag}`;
-            
-            // Create regex to match exact tag (not nested variants)
-            // Since tags only contain a-zA-Z0-9_-/, we only need to escape the forward slash
-            const escapedTag = tagPattern.replace(/\//g, '\\/');
-            const exactTagRegex = new RegExp(`${escapedTag}(?=\\s|$)`, 'g');
-            
-            // Remove all instances of the exact inline tag
-            const updatedContent = content.replace(exactTagRegex, '').replace(/\n\s*\n\s*\n/g, '\n\n'); // Clean up extra newlines
-            
-            // Write the updated content back to the file (only if content changed)
-            if (content !== updatedContent) {
-                await this.app.vault.modify(this.file, updatedContent);
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('Failed to remove tag:', error);
-            return false;
-        }
+    public editTagPath(newTagPath: string): void {
+        this.tagpath = newTagPath;
     }
-    
-    /**
-     * Removes a tag and all its nested varieties from the actual file
-     * 
-     * Removes the tag and all nested varieties of the given tag from both the frontmatter 
-     * metadata and inline content of the actual file. Removes all varieties of the nested tags.
-     * For example: if the tag to remove is "school/subject" then "school/subject/maths"
-     * as well as "school/subject/science" are also deleted.
-     * 
-     * @param tagToRemove - The root tag to remove along with all nested variants
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User wants to completely remove a tag branch, major tree restructuring
-     */
-    public async removeTagAllNested(tagToRemove: string): Promise<boolean> {
-        try {
-            // Clean the tag (remove # if present)
-            const cleanTag = tagToRemove.startsWith('#') ? tagToRemove.slice(1) : tagToRemove;
-            
-            // First, remove from frontmatter using Obsidian API
-            await this.app.fileManager.processFrontMatter(this.file, (frontmatter) => {
-                if (frontmatter.tags) {
-                    if (Array.isArray(frontmatter.tags)) {
-                        // Remove the tag and all nested variants from the array
-                        frontmatter.tags = frontmatter.tags.filter((tag: string) => 
-                            !tag.startsWith(cleanTag) || (tag !== cleanTag && !tag.startsWith(cleanTag + '/'))
-                        );
-                        // Remove the tags property if array is now empty
-                        if (frontmatter.tags.length === 0) {
-                            delete frontmatter.tags;
-                        }
-                    } else if (typeof frontmatter.tags === 'string' && 
-                              (frontmatter.tags === cleanTag || frontmatter.tags.startsWith(cleanTag + '/'))) {
-                        // Remove the single tag if it matches or is nested
-                        delete frontmatter.tags;
-                    }
-                }
-            });
-            
-            // Second, remove inline tags from file content
-            const content = await this.app.vault.read(this.file);
-            
-            // Format the tag with hash prefix for inline removal
-            const tagPattern = cleanTag.startsWith('#') ? cleanTag : `#${cleanTag}`;
-            
-            // Create regex to match the tag and all nested variants
-            // Since tags only contain a-zA-Z0-9_-/, we only need to escape the forward slash
-            const escapedTag = tagPattern.replace(/\//g, '\\/');
-            const nestedTagRegex = new RegExp(`${escapedTag}(?:\\/[a-zA-Z0-9_\\-\\/]*)?(?=\\s|$)`, 'g');
-            
-            // Remove all instances of the tag and its nested variants
-            const updatedContent = content.replace(nestedTagRegex, '').replace(/\n\s*\n\s*\n/g, '\n\n'); // Clean up extra newlines
-            
-            // Write the updated content back to the file (only if content changed)
-            if (content !== updatedContent) {
-                await this.app.vault.modify(this.file, updatedContent);
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('Failed to remove nested tags:', error);
-            return false;
-        }
-    }
-    
+
     /**
      * Retrieves all the tag paths that this file exists under
      * 

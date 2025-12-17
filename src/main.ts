@@ -1,5 +1,11 @@
-// Import the development plugin class from main_2.ts
-import TagFileExplorerPluginDev from './main_2';
+import { Plugin } from 'obsidian';
 
-// Export the development class as the default plugin
-export default TagFileExplorerPluginDev;
+export default class TagFolderPlugin extends Plugin {
+	async onload() {
+		console.log('Tag Folder Plugin loaded');
+	}
+
+	onunload() {
+		console.log('Tag Folder Plugin unloaded');
+	}
+}

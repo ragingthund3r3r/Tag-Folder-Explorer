@@ -22,12 +22,22 @@ export interface IFileLeaf {
      * (e.g., "folder/subfolder/my-notes.md")
      */
     // path: string;
+
+    /**
+     * The tag path associated with this file
+     * Represents the nested tag path that leads to this file (e.g., "subject/math")
+     */
+    // tagpath: string;
+
     
     /**
      * An Obsidian API reference to the file object
      * This is the actual TFile object that Obsidian uses to represent this file
      */
     // file: TFile;
+
+
+
     
     // ==================== FUNCTIONS ====================
     
@@ -36,6 +46,9 @@ export interface IFileLeaf {
      * 
      * @param name - The name of the file
      * @param path - The relative path of the file in the vault
+     * @param tagpath - The tag path associated with the file
+     * @param file - The TFile reference of the actual file
+     * @param app - The Obsidian App instance for API access
      * @returns FileLeaf - The constructed FileLeaf object
      * 
      * Used when: Building the tree structure from vault scan, adding new files to tree
@@ -66,77 +79,43 @@ export interface IFileLeaf {
     
 
 
-    /**
-     * Updates the file name when the actual file is renamed externally
-     * 
-     * We aren't handling renaming files via the plugin, so this function is for
-     * when the name of the file is modified externally and needs to be updated 
-     * for this object. Also recomputes the file property on a file rename.
-     * 
-     * @param newName - The new name of the file
-     * @returns boolean - true if successfully renamed, false otherwise
-     * 
-     * Used when: File system watcher detects file rename, manual tree updates
+    /**     
+     * Gets the tag path associated with the file
+     *
+     * @returns string - The tag path associated with the file
+     *
+     * Used when: Tag-based operations, tree positioning, file categorization
      */
-    renameFile(newName: string): boolean;
+    getTagPath(): string;
+
+    /**
+     * Edits/updates the name of the file
+     * 
+     * @param newName - The new filename to set
+     * 
+     * Used when: Renaming files, file management operations
+     */
+    editFileName(newName: string): void;
+
+    /**
+     * Edits/updates the path of the file
+     * 
+     * @param newPath - The new relative path of the file in the vault
+     * 
+     * Used when: Moving files, reorganizing vault structure
+     */
+    editPath(newPath: string): void;
+
+    /**
+     * Edits/updates the tag path associated with the file
+     * 
+     * @param newTagPath - The new tag path to associate with the file
+     * 
+     * Used when: Retagging files, updating file categorization
+     */
+    editTagPath(newTagPath: string): void;
+
     
-    /**
-     * Updates the file path when the file is moved externally
-     * 
-     * For now we aren't handling shifting files via the plugin, so this function
-     * is for editing the path of a file when something like a parent folder name
-     * is edited or a file is shifted etc. Recomputes file property as well.
-     * 
-     * @param newPath - The new relative path of the file
-     * @returns boolean - true if successfully edited, false otherwise
-     * 
-     * Used when: File system watcher detects file move, folder renames, manual tree updates
-     */
-    editPath(newPath: string): boolean;
-    
-    /**
-     * Adds a new tag to the metadata of the actual file
-     * 
-     * Adds the tag that is provided to the metadata of the actual file that
-     * this FileLeaf represents. Returns a promise since it's a file edit operation.
-     * 
-     * @param newNestedTag - The new nested tag to add (e.g., "subject/math")
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User adds tags through UI, programmatic tag addition, tree manipulation
-     */
-    addNewTag(newNestedTag: string): Promise<boolean>;
-    
-    /**
-     * Removes a specific tag from the actual file
-     * 
-     * Removes the tag that is provided from the actual file that it represents.
-     * This removal is for every instance of the tag mention in the file and is
-     * not restricted to the metadata of the file. Does not remove further nested tags.
-     * For example: if the tag to remove is "school/subject" then "school/subject/maths" is NOT deleted.
-     * 
-     * @param tagToRemove - The tag to remove (e.g., "school/subject")
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User removes specific tags through UI, tree cleanup operations
-     */
-    removeTag(tagToRemove: string): Promise<boolean>;
-    
-    /**
-     * Removes a tag and all its nested varieties from the actual file
-     * 
-     * Removes the tag and all nested varieties of the given tag from the actual file.
-     * This removal is for every instance of the tag mention in the file and is not
-     * restricted to the metadata of the file. Removes all varieties of the nested tags.
-     * For example: if the tag to remove is "school/subject" then "school/subject/maths"
-     * as well as "school/subject/science" are also deleted.
-     * 
-     * @param tagToRemove - The root tag to remove along with all nested variants
-     * @returns Promise<boolean> - Promise that resolves to success/failure
-     * 
-     * Used when: User wants to completely remove a tag branch, major tree restructuring
-     */
-    removeTagAllNested(tagToRemove: string): Promise<boolean>;
     
     /**
      * Retrieves all the tag paths that this file exists under
