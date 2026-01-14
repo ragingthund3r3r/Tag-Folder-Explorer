@@ -18,3 +18,4 @@ This is a great way to organize your tags, but Ive realized that although obsidi
 Also at the same time nested tags can be used as a placeholder for traditional folder paths, thus allowing us to add multiple nested tags to a single file. That way a single file (if contains more than one nested tag), can be present in multiple "virtual" folders at the same time.
 
 
+Since obsidian doesnt naturally have a file explorer, i considered that such a project would solve both the problems. It would create a scaffolding fro a traditional file explorer plugin, but more importanly leverage the nested tag feature of obsidian to boost the general useability of obsidian itself
