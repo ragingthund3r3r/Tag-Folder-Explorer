@@ -432,3 +432,251 @@ export interface ITagNode {
     
 
 }
+
+
+
+/**
+ * Interface for TreeRoot objects - represents the root of the tag tree
+ * 
+ * TreeRoot object is the root of the tag tree structure. It contains the top-level tag nodes and untagged files.
+ */
+export interface ITreeRoot {
+    // ==================== PROPERTIES ====================
+    
+    /**
+     * The tags that have no parents and are directly under the root. 
+     * Contains a list of top-level TagNode objects.
+     */
+    //  rootTags: Set<ITagNode>;
+    
+    /**
+     * Files that dont have any parent tags associated with them
+     * Contains a list of FileLeaf objects that are untagged.
+     */
+    // untaggedFiles: Set<IFileLeaf>;
+
+
+    /**
+     * A dictionary object of sorted trees of different types. 
+     * These trees are flattened static json representations.
+     * Keyed by the type of sort that is applied. 
+     * We precompute this so that a static reference to this can be sent to the frontend for population. 
+     * The keys are "Alphabetical_asc", "Alphabetical_desc", "ModifiedDate_asc", "ModifiedDate_desc", "CreatedDate_asc", "CreatedDate_desc", "FileSize_asc", "FileSize_desc"
+     * 
+     */
+    // sortedTrees: {
+    //     "Alphabetical_asc": any;
+    //     "Alphabetical_desc": any;
+    //     "ModifiedDate_asc": any;
+    //     "ModifiedDate_desc": any;
+    //     "CreatedDate_asc": any;
+    //     "CreatedDate_desc": any;
+    //     "FileSize_asc": any;
+    //     "FileSize_desc": any;
+    // };
+
+    
+    /**
+     * Flags that the tree maintains in order to determine and calculate the state of the tree. 
+     * This entire object is a nested object thus making it easier to add new flags in the future and access the existing ones.
+     * Contains the following flags:
+     * - isDirty: parent_object - Indicates if the static snapshots of the tree are dirty.
+     *     - alphabetical_asc: boolean - Indicates if the alphabetical ascending snapshot is dirty.
+     *     - alphabetical_desc: boolean - Indicates if the alphabetical descending snapshot is dirty.
+     *     - modifiedDate_asc: boolean - Indicates if the modified date ascending snapshot is dirty.
+     *     - modifiedDate_desc: boolean - Indicates if the modified date descending snapshot is dirty.
+     *     - createdDate_asc: boolean - Indicates if the created date ascending snapshot is dirty.
+     *     - createdDate_desc: boolean - Indicates if the created date descending snapshot is dirty.
+     *     - fileSize_asc: boolean - Indicates if the file size ascending snapshot is dirty.
+     *     - fileSize_desc: boolean - Indicates if the file size descending snapshot is dirty.
+     * - broadcastCounter: number - A counter to track broadcast events for tree updates.
+     * - folderPosition: boolean - Indicates if folder position is above files in the tree. 1 is above 0 is below.
+     */
+    // flags: {
+    //     isDirty: {
+    //         alphabetical_asc: boolean;
+    //         alphabetical_desc: boolean;
+    //         modifiedDate_asc: boolean;
+    //         modifiedDate_desc: boolean;
+    //         createdDate_asc: boolean;
+    //         createdDate_desc: boolean;
+    //         fileSize_asc: boolean;
+    //         fileSize_desc: boolean;
+    //     };
+    //     broadcastCounter: number;
+    //     folderPosition: boolean;
+    // };
+
+
+    /**
+     * This indicates the actual folder paths that we have to skip during tree construction. 
+     * This is a set of strings where each string is a folder path relative to the vault root.
+     * For example, to skip a folder named "Private" at the vault root, the entry would be "Private".
+     * To skip a subfolder named "Secret" inside a folder "Work", the entry would be "Work/Secret".
+     * This allows users to exclude specific folders from being scanned and included in the tag tree.
+     */
+    // excludedFolders: Set<string>;
+
+    
+    // ==================== FUNCTIONS ====================
+    
+    /**
+     * Creates new tree root object
+     * 
+     * @param rootTags 
+     * @param untaggedFiles
+     * @param flags
+     * @param excludedFolders
+     * @param app - The Obsidian App instance for API access
+     * @returns TreeRoot - The constructed TreeRoot object
+     * 
+     * Used when: Building the tree structure from vault scan, adding new files to tree
+     */
+    // constructor(): ITreeRoot; // Note: constructors aren't part of interfaces in TS
+    
+
+
+
+    
+    /**
+     * Dumps the current computed tree, computed snapshots and recomputes the whole tree datastructure and updates all static snapshots
+     * 
+     * @returns void 
+     * 
+     * Used when: We need to recompute the entire tree from scratch, such as after bulk changes
+     */
+    recomputeTree(): void;
+    
+
+    // im not pre computing or sorting right now so will handle this later
+    // /**
+    //  * Dumps the current snapshots of the tree and recomputes all static snapshots
+    //  * 
+    //  * @returns void
+    //  * 
+    //  * Used when: Some files have changed and we need to update the sorted snapshots
+    //  */
+    // resortTree(): void;
+    
+
+
+    /**     
+     * Gets the list of TagNode Objects in the tree
+     *
+     * @returns - The list of root tags in the tree
+     *
+     */
+    getRootTags(): Set<ITagNode>;
+
+
+    /**
+     * Gets the list of LeafNode Objects in the tree
+     * 
+     * @returns - The list of untagged files in the tree
+     * 
+     */
+    getUntaggedFiles(): Set<IFileLeaf>;
+
+    // /**
+    //  * Gets the readonly json version of the sorted tree of the specified type
+    //  * 
+    //  * @param type - The key of the type of sorted tree to retrieve
+    //  * 
+    //  */
+    // getSortedTrees(type): unknown;
+
+
+
+    /**
+     * Gets the readonly json version of the sorted tree of the specified type
+     * 
+     * 
+     */
+    getSortedTree(): unknown;
+    
+    
+    /**
+     * Retruns the list of paths that are supposed to be skipped during computation
+     * 
+     */
+    getSkipFolderPath(): string[];
+
+  
+    
+    /**
+     * Returns a list of paths of the current tree where the file that is passed in exists.
+     * 
+     * @param filename - The name of the file 
+     * @param filepath - The path of the file relative to the root of the vault
+     * 
+     */
+    getAllInstancesOfFile(filename:string, filepath:string): string[];
+    
+
+    // // getAllDirectChildrenNodes
+    // // getAllDirectChildrenFiles
+
+
+    // the two below make these redundant
+    // /**
+    //  * Returns a specific node according to the name provided, only from the roottag list 
+    //  * 
+    //  * @param tagname - The name of the tag 
+    //  * 
+    //  */
+    // getChildNode(tagname:string): ITagNode | null;
+    
+
+    // /**
+    //  * Returns a specific file according to the name and path provided, only from the untagged files list 
+    //  * 
+    //  * @param filename - The name of the file 
+    //  * @param filepath - The path of the file relative to the root of the vault
+    //  * 
+    //  */
+    // getChildFile(filename:string, filepath:string): IFileLeaf | null;
+
+
+    
+    /**
+     * Returns a specific node according to the name provided, from whole tree
+     * 
+     * @param tagname - The name of the tag 
+     * 
+     */
+    getNode(tagname:string): ITagNode | null;
+    
+
+    /**
+     * Returns a specific file according to the name and path provided, from the whole tree
+     * 
+     * @param filename - The name of the file 
+     * @param filepath - The path of the file relative to the root of the vault
+     * 
+     */
+    getFile(filename:string, filepath:string): IFileLeaf | null;
+
+
+
+    // // setFlag
+    
+    
+    /**
+     * Deletes a specific node according to the name provided, from whole tree
+     * 
+     * @param tagname - The name of the tag 
+     * 
+     */
+    delChildNode(tagname:string): boolean | null;
+    
+
+    /**
+     * Deletes a specific file according to the name and path provided, from the whole tree
+     * 
+     * @param filename - The name of the file 
+     * @param filepath - The path of the file relative to the root of the vault
+     * 
+     */
+    delChildFile(filename:string, filepath:string): boolean | null;
+
+}
