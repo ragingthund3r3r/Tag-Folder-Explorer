@@ -546,7 +546,7 @@ export interface ITreeRoot {
      * Used when: We need to recompute the entire tree from scratch, such as after bulk changes
      */
     recomputeTree(): void;
-    
+
 
     // im not pre computing or sorting right now so will handle this later
     // /**
@@ -594,7 +594,6 @@ export interface ITreeRoot {
      */
     getSortedTree(): unknown;
     
-    
     /**
      * Retruns the list of paths that are supposed to be skipped during computation
      * 
@@ -621,10 +620,10 @@ export interface ITreeRoot {
     // /**
     //  * Returns a specific node according to the name provided, only from the roottag list 
     //  * 
-    //  * @param tagname - The name of the tag 
+    //  * @param tagpath - The path of the tag including its name
     //  * 
     //  */
-    // getChildNode(tagname:string): ITagNode | null;
+    // getChildNode(tagpath:string): ITagNode | null;
     
 
     // /**
@@ -641,20 +640,22 @@ export interface ITreeRoot {
     /**
      * Returns a specific node according to the name provided, from whole tree
      * 
-     * @param tagname - The name of the tag 
+     * @param tagpath - The path of the tag including its name
+
      * 
      */
-    getNode(tagname:string): ITagNode | null;
+    getNode(tagpath:string): ITagNode | null;
     
 
     /**
-     * Returns a specific file according to the name and path provided, from the whole tree
+     * Returns a specific file according to the name and path provided, from the whole tree, of a specific tagpath
      * 
      * @param filename - The name of the file 
      * @param filepath - The path of the file relative to the root of the vault
+     * @param tagpath - The path of the tagnode parent eg "subject/math"
      * 
      */
-    getFile(filename:string, filepath:string): IFileLeaf | null;
+    getFile(filename:string, filepath:string, tagpath:string): IFileLeaf | null;
 
 
 
@@ -664,19 +665,20 @@ export interface ITreeRoot {
     /**
      * Deletes a specific node according to the name provided, from whole tree
      * 
-     * @param tagname - The name of the tag 
+     * @param tagpath - The path of the tag including its name
      * 
      */
-    delChildNode(tagname:string): boolean | null;
-    
+    delChildNode(tagpath:string): boolean | null;
+ 
 
     /**
-     * Deletes a specific file according to the name and path provided, from the whole tree
+     * Deletes a specific file according to the name and path provided, from a specific tagpath
      * 
      * @param filename - The name of the file 
      * @param filepath - The path of the file relative to the root of the vault
+     * @param tagpath - The path of the tagnode parent eg "subject/math"
      * 
      */
-    delChildFile(filename:string, filepath:string): boolean | null;
+    delChildFile(filename:string, filepath:string, tagpath:string): boolean | null;
 
 }
