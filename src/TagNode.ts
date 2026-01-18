@@ -190,9 +190,17 @@ export class TagNode implements ITagNode {
 path: "${this.path}"
 name: "${this.name}"
 created: "${new Date().toISOString()}"
+modified: "${new Date().toISOString()}"
 description: |-
   TagNode Metadata for ${this.name}
   This file contains metadata for the TagNode at path: \`${this.path}\`
+legend: |-
+  - 🔴, label one
+  - 🟠, label two
+  - 🟡, label three
+  - 🟢, label four
+  - 🔵, label five
+  - 🟣, label six
 ---
 
 `;

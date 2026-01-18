@@ -2,6 +2,8 @@ import { App, TFile, TFolder } from 'obsidian';
 import { ITreeRoot, ITagNode, IFileLeaf } from './interfaces';
 import { TagNode } from './TagNode';
 import { FileLeaf } from './FileLeaf';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * TreeRoot class - represents the root of the tag tree
@@ -59,8 +61,9 @@ export class TreeRoot implements ITreeRoot {
         this.rootTags = new Set<ITagNode>();
         this.untaggedFiles = new Set<IFileLeaf>();
 
-        // call the tree construction private functions that return the rootTags and untaggedFiles objects
-        // TODO
+        this.recomputeTree();
+
+
         
     }
     
@@ -275,6 +278,9 @@ export class TreeRoot implements ITreeRoot {
         
         // Recursively process all files
         this.processVaultFolder(vaultRoot);
+
+        // After computing tree from files, populate empty tag folders from metadata
+        this.populateEmptyTagFoldersFromMetadata();
     }
     
     /**
@@ -507,6 +513,165 @@ export class TreeRoot implements ITreeRoot {
     }
     
     /**
+     * Populates empty tag folders from metadata files
+     * 
+     * After computing the tree from files, this method iterates through all metadata files
+     * in the .TagNodeMeta folder. For each metadata file, it extracts the tag path and
+     * checks if the corresponding TagNode exists in the tree. If not, it creates the
+     * TagNode hierarchy to preserve empty folders that once existed.
+     * 
+     * @returns void
+     * 
+     * Used when: Tree recomputation, restoring empty tag folders, tree initialization
+     */
+    private populateEmptyTagFoldersFromMetadata(): void {
+        try {
+            // Get the vault's base path
+            const vaultPath = (this.app.vault.adapter as any).basePath || '';
+            const metaFolderPath = path.join(vaultPath, '.TagNodeMeta');
+            
+            // Check if .TagNodeMeta folder exists
+            if (!fs.existsSync(metaFolderPath)) {
+                return; // No metadata folder, nothing to do
+            }
+            
+            // Read all files in the metadata folder
+            const metadataFiles = fs.readdirSync(metaFolderPath);
+            
+            // Process each metadata file
+            for (const filename of metadataFiles) {
+                // Skip non-.md files
+                if (!filename.endsWith('.md')) {
+                    continue;
+                }
+                
+                // Extract the tag path from the filename
+                const tagPath = this.extractTagPathFromFilename(filename);
+                
+                if (!tagPath || tagPath.trim() === '') {
+                    continue; // Invalid or empty path, skip
+                }
+                
+                // Check if this tag path already exists in the tree
+                const existingNode = this.getNode(tagPath);
+                
+                if (existingNode) {
+                    // Node already exists, move on
+                    continue;
+                }
+                
+                // Node doesn't exist, create it
+                this.createTagNodeHierarchy(tagPath);
+            }
+        } catch (error) {
+            console.error('Error populating empty tag folders from metadata:', error);
+        }
+    }
+    
+    /**
+     * Extracts the tag path from a metadata filename
+     * 
+     * Parses the metadata filename which follows the format:
+     * {path_with_underscores}_{base64_encoded_path}.md
+     * 
+     * For example: "subject_math_c3ViamVjdC9tYXRo.md" -> "subject/math"
+     * 
+     * @param filename - The name of the metadata file
+     * @returns string - The extracted tag path, or empty string if not found
+     */
+    private extractTagPathFromFilename(filename: string): string {
+        try {
+            // Remove the .md extension
+            const nameWithoutExtension = filename.replace(/\.md$/, '');
+            
+            // Find the last underscore which separates the base64 part
+            const lastUnderscoreIndex = nameWithoutExtension.lastIndexOf('_');
+            
+            if (lastUnderscoreIndex === -1) {
+                return ''; // No underscore found, invalid format
+            }
+            
+            // Extract the base64 encoded part (after the last underscore)
+            const base64Part = nameWithoutExtension.substring(lastUnderscoreIndex + 1);
+            
+            if (!base64Part) {
+                return ''; // Empty base64 part
+            }
+            
+            // Decode the base64 string to get the original tag path
+            const decodedPath = atob(base64Part);
+            
+            return decodedPath;
+        } catch (error) {
+            console.error(`Error extracting tag path from filename ${filename}:`, error);
+            return '';
+        }
+    }
+    
+    /**
+     * Creates a TagNode hierarchy for a given tag path
+     * 
+     * Creates all necessary TagNode objects along a tag path if they don't exist.
+     * This is similar to addFileToTagPath but without adding a file at the end.
+     * 
+     * @param tagPath - The nested tag path (e.g., "subject/math")
+     * @returns void
+     */
+    private createTagNodeHierarchy(tagPath: string): void {
+        // Split the tag path into segments
+        const tagSegments = tagPath.split('/').filter(segment => segment.length > 0);
+        
+        if (tagSegments.length === 0) {
+            return;
+        }
+        
+        // Navigate or create the tag node hierarchy
+        let currentNode: ITagNode | null = null;
+        let currentPath = '';
+        
+        for (let i = 0; i < tagSegments.length; i++) {
+            const segmentName = tagSegments[i];
+            currentPath = i === 0 ? segmentName : `${currentPath}/${segmentName}`;
+            
+            if (i === 0) {
+                // First segment - check if it exists in root tags
+                let rootTag: ITagNode | null = null;
+                for (const tag of this.rootTags) {
+                    if (tag.getName() === segmentName) {
+                        rootTag = tag;
+                        break;
+                    }
+                }
+
+
+
+                
+                if (!rootTag) {
+                    // Create new root tag
+                    rootTag = new TagNode(segmentName, currentPath, null, this.app);
+                    this.rootTags.add(rootTag);
+                }
+                
+                currentNode = rootTag;
+            } else {
+                // Subsequent segments - check if it exists as a child
+                if (!currentNode) {
+                    return; // Safety check
+                }
+                
+                let childNode: ITagNode | null = currentNode.getChild(segmentName);
+                if (!childNode) {
+                    // Create new child node
+                    currentNode.addChildNode(segmentName);
+                    childNode = currentNode.getChild(segmentName);
+                }
+                
+                currentNode = childNode;
+            }
+        }
+    }
+    
+    /**
      * Serializes the tree structure to a JSON-compatible format
      * This is a basic implementation; sorting/formatting can be enhanced later.
      * 
@@ -525,7 +690,7 @@ export class TreeRoot implements ITreeRoot {
                 })),
             };
         };
-        
+    
         return {
             rootTags: Array.from(this.rootTags).map(serializeNode),
             untaggedFiles: Array.from(this.untaggedFiles).map(file => ({
