@@ -5,14 +5,14 @@ import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian'
 // step 1
 import Counter from './svelte-components/Counter.svelte';
 import testsidebar from './svelte-components/test_sidebar.svelte';
+import DualSidebar from './svelte-components/DualSidebar.svelte';
 
 import { mount, unmount } from 'svelte';
 
  
 
 const VIEW_TYPE_EXPLORER = 'explorer-view'
-const VIEW_TYPE_BLANK = 'blank-view'
-
+const VIEW_TYPE_DUAL_SIDEBAR = 'dual-sidebar-view'
 
 
 
@@ -74,37 +74,56 @@ class ExplorerView extends ItemView {
 
 
 
-class BlankView extends ItemView {
 
-  constructor(leaf: WorkspaceLeaf) { super(leaf) }
+class DualSidebarView extends ItemView {
+  component: ReturnType<typeof DualSidebar> | undefined;
 
-  getViewType() { return VIEW_TYPE_BLANK }
+  constructor(leaf: WorkspaceLeaf) { 
+    super(leaf) 
+  }
 
-  getDisplayText() { return 'Blank view' }
+  getViewType() { 
+    return VIEW_TYPE_DUAL_SIDEBAR 
+  }
+
+  getDisplayText() { 
+    return 'Dual Sidebar View' 
+  }
 
   async onOpen() {
+    this.renderView()
+  }
+  
+  private renderView() {
     const c = this.contentEl
     c.empty()
-    // Leave blank - no content rendered
+    
+    this.component = mount(DualSidebar, {
+      target: this.contentEl
+    });
+    
+    console.log("Dual sidebar mounted")
   }
-
+  
   async onClose() {
-    // Cleanup if needed
+    if (this.component) {
+      unmount(this.component);
+    }
   }
 }
-
 
 
 export default class ExamplePlugin extends Plugin {
   async onload() {
 	
     this.registerView(VIEW_TYPE_EXPLORER, leaf => new ExplorerView(leaf))
-    this.registerView(VIEW_TYPE_BLANK, leaf => new BlankView(leaf))
-    
-    this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
-    this.addRibbonIcon('folder-tree', 'Open Blank View', () => this.activateBlankView())
+    this.registerView(VIEW_TYPE_DUAL_SIDEBAR, leaf => new DualSidebarView(leaf))
 
-  }
+
+    this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
+    this.addRibbonIcon('folder-tree', 'Open Dual Sidebar', () => this.activateDualView())
+
+  }  
 
 
   async activateView() {
@@ -117,14 +136,12 @@ export default class ExamplePlugin extends Plugin {
   }
 
 
-  async activateBlankView() {
+
+  async activateDualView() {
     const w = this.app.workspace
-    
     let leaf = w.getLeaf(true)
-    await leaf.setViewState({ type: VIEW_TYPE_BLANK, active: true })
-    
+    await leaf.setViewState({ type: VIEW_TYPE_DUAL_SIDEBAR, active: true })
     w.revealLeaf(leaf)
   }
-
   
 }
