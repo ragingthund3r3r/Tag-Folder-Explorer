@@ -3,8 +3,8 @@
   import TestSidebar from './test_sidebar.svelte';
   
   // State for sidebar collapse
-  let leftCollapsed = writable(true);
-  let rightCollapsed = writable(false);
+  let leftCollapsed = writable(false);
+  let rightCollapsed = writable(true);
   
   function toggleLeft() {
     leftCollapsed.update(v => !v);
