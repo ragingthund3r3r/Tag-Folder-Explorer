@@ -52,13 +52,29 @@
 
   <!-- Main Content Area -->
   <div class="main-content">
+
+
+    <div class="main-header">
+
+      <span class="main-title">Main Section</span>
+
+
+    </div>
+
+        <div class="main-subheader">
+
+      <span class="main-subtitle">Main Section Sub</span>
+
+
+    </div>
+
     <p class="placeholder-text">Main content area</p>
   </div>
 
 
 
 
-  
+
 
 
   <!-- Right Sidebar -->
@@ -151,6 +167,27 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
     min-height: 40px;
   }
 
+  .main-header {
+    display: flex;
+    align-items: center;
+    
+    padding: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary-alt);
+    min-height: 40px;
+  }
+
+  .main-subheader {
+    display: flex;
+    align-items: center;
+    
+    padding: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary-alt);
+    min-height: 40px;
+  }
+
+
   .left-sidebar .sidebar-header {
     flex-direction: row;
   }
@@ -160,6 +197,26 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
   }
 
   .sidebar-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-normal);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+
+
+
+   .main-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-normal);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+
+   .main-subtitle {
     font-weight: 500;
     font-size: 14px;
     color: var(--text-normal);
@@ -197,7 +254,8 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
   .main-content {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
     background-color: var(--background-primary);
   }
 
