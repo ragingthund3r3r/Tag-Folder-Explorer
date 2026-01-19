@@ -1,10 +1,11 @@
 {
+  "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "inlineSourceMap": true,
+    
     "inlineSources": true,
     "module": "ESNext",
-    "target": "ES6",
+    "target": "ESNext",
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -16,9 +17,18 @@
       "ES5",
       "ES6",
       "ES7"
-    ]
+    ], 
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"]
+    }    
+    
   },
   "include": [
-    "**/*.ts"
-  ]
+    "**/*.ts",
+    "**/*.svelte"
+, "mainold.ts.txtt"  ]
 }
