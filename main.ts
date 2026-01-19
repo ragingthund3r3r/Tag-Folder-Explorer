@@ -11,6 +11,7 @@ import { mount, unmount } from 'svelte';
  
 
 const VIEW_TYPE_EXPLORER = 'explorer-view'
+const VIEW_TYPE_BLANK = 'blank-view'
 
 
 
@@ -73,11 +74,35 @@ class ExplorerView extends ItemView {
 
 
 
+class BlankView extends ItemView {
+
+  constructor(leaf: WorkspaceLeaf) { super(leaf) }
+
+  getViewType() { return VIEW_TYPE_BLANK }
+
+  getDisplayText() { return 'Blank view' }
+
+  async onOpen() {
+    const c = this.contentEl
+    c.empty()
+    // Leave blank - no content rendered
+  }
+
+  async onClose() {
+    // Cleanup if needed
+  }
+}
+
+
+
 export default class ExamplePlugin extends Plugin {
   async onload() {
 	
     this.registerView(VIEW_TYPE_EXPLORER, leaf => new ExplorerView(leaf))
+    this.registerView(VIEW_TYPE_BLANK, leaf => new BlankView(leaf))
+    
     this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
+    this.addRibbonIcon('folder-tree', 'Open Blank View', () => this.activateBlankView())
 
   }
 
@@ -91,6 +116,15 @@ export default class ExamplePlugin extends Plugin {
     w.revealLeaf(leaf)
   }
 
+
+  async activateBlankView() {
+    const w = this.app.workspace
+    
+    let leaf = w.getLeaf(true)
+    await leaf.setViewState({ type: VIEW_TYPE_BLANK, active: true })
+    
+    w.revealLeaf(leaf)
+  }
 
   
 }
