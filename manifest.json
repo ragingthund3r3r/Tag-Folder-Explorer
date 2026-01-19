@@ -1,11 +1,11 @@
 {
-	"id": "oop-tag-folder",
-	"name": "aaa OOP Tag Folder",
+	"id": "tag-folder-explorer",
+	"name": "a Tag Folder Explorer",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "A tag folder based explorer for obsidian. Uses the nested tags feature of obsidian to create virtual folders, thus allowing individual files to exist in multiple locations, inside a single vault.",
+	"author": "",
+	"authorUrl": "",
+	"fundingUrl": "",
 	"isDesktopOnly": false
 }

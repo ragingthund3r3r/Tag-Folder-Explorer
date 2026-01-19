@@ -36,6 +36,7 @@
       ]
     },
     { name: 'Welcome', path: 'Welcome.md', type: 'file' },
+    { name: 'Welcome333333333333333333333333333333333333333333333333333333333333333333333333333333333', path: 'Welcome3.md', type: 'file' },
     { name: 'Getting Started', path: 'Getting Started.md', type: 'file' },
     { name: 'README', path: 'README.md', type: 'file' }
   ];
