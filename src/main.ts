@@ -15,6 +15,11 @@ import { mount, unmount } from 'svelte';
 
  
 
+
+
+import {DEFAULT_SETTINGS, TagFolderSettingTab} from "./settings";
+import type {TagFolderPluginSettings} from "./settings";
+
 const VIEW_TYPE_EXPLORER = 'explorer-view'
 const VIEW_TYPE_DUAL_SIDEBAR = 'dual-sidebar-view'
 
@@ -119,15 +124,21 @@ class DualSidebarView extends ItemView {
 
 export default class TagFolderPlugin extends Plugin {
 
+	settings: TagFolderPluginSettings = DEFAULT_SETTINGS;
+
+
 	private treeRoot: TreeRoot | null = null;
 
 
   async onload() {
 
+    await this.loadSettings();
+
 		console.log('Tag Folder Plugin loaded');
+
 		
 		// Construct the tag tree structure
-		this.treeRoot = new TreeRoot(this.app);
+		this.treeRoot = new TreeRoot(this.app, this.settings);
 		
 		console.log('Tag tree constructed successfully');
 
@@ -144,6 +155,10 @@ export default class TagFolderPlugin extends Plugin {
     this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
     this.addRibbonIcon('folder-tree', 'Open Dual Sidebar', () => this.activateDualView())
 
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new TagFolderSettingTab(this.app, this));
+
+    
   }  
 
 
@@ -171,5 +186,13 @@ export default class TagFolderPlugin extends Plugin {
 		// Clean up the tree reference
 		this.treeRoot = null;
 	}
+
+	async loadSettings() {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<TagFolderPluginSettings>);
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
+	}  
 
 }

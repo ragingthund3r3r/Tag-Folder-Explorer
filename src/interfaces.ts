@@ -1,5 +1,7 @@
 import { TFile } from 'obsidian';
 
+import type {TagFolderPluginSettings} from "./settings";
+
 /**
  * Interface for FileLeaf objects - represents individual files as leaf nodes in the tag tree
  * 
@@ -545,7 +547,7 @@ export interface ITreeRoot {
      * 
      * Used when: We need to recompute the entire tree from scratch, such as after bulk changes
      */
-    recomputeTree(): void;
+    recomputeTree(currentSettings:TagFolderPluginSettings): void;
 
 
     // im not pre computing or sorting right now so will handle this later

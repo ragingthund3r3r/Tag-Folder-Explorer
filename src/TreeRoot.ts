@@ -1,9 +1,11 @@
 import { App, TFile, TFolder } from 'obsidian';
-import { ITreeRoot, ITagNode, IFileLeaf } from './interfaces';
+import type { ITreeRoot, ITagNode, IFileLeaf } from './interfaces';
 import { TagNode } from './TagNode';
 import { FileLeaf } from './FileLeaf';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import  type { TagFolderPluginSettings } from './settings';
 
 /**
  * TreeRoot class - represents the root of the tag tree
@@ -40,6 +42,11 @@ export class TreeRoot implements ITreeRoot {
      */
     private app: App;
     
+   
+    private settings: TagFolderPluginSettings 
+
+
+
     // ==================== CONSTRUCTOR ====================
     
     /**
@@ -51,17 +58,22 @@ export class TreeRoot implements ITreeRoot {
      * @param app - The Obsidian App instance for vault access and file operations
      * @param excludedFolders - Optional set of folder paths to skip during computation
      */
-    constructor(app: App, excludedFolders?: Set<string>) {
+    constructor(app: App, settings: TagFolderPluginSettings ) {
         this.app = app;
-        this.excludedFolders = excludedFolders || new Set<string>();
+        this.excludedFolders = new Set<string>();
 
         // retrieve the excluded folders from the obsidian settings. in obsidian, the excluded folders is a simple text box where each path to be expluded is placed on a separate line. 
-        // TODO
+        // TODO   
+        this.settings = settings;
 
         this.rootTags = new Set<ITagNode>();
         this.untaggedFiles = new Set<IFileLeaf>();
 
-        this.recomputeTree();
+        
+        // console.log (settings)
+
+        this.recomputeTree(settings);
+
 
 
         
@@ -264,7 +276,7 @@ export class TreeRoot implements ITreeRoot {
      * 
      * Used when: Initial tree creation, tree refresh, bulk changes
      */
-    public recomputeTree(): void {
+    public recomputeTree(currentSettings:TagFolderPluginSettings): void {
         // Clear existing tree
         this.rootTags.clear();
         this.untaggedFiles.clear();
@@ -275,6 +287,10 @@ export class TreeRoot implements ITreeRoot {
             console.error('Cannot access vault root');
             return;
         }
+        
+
+        this.excludedFolders= new Set(currentSettings.folderPathsToSkip.split("\n").filter(line => line.length > 0));
+
         
         // Recursively process all files
         this.processVaultFolder(vaultRoot);
@@ -509,6 +525,7 @@ export class TreeRoot implements ITreeRoot {
      * @returns boolean - true if folder should be excluded
      */
     private isExcludedFolder(folderPath: string): boolean {
+        // console.log("hiiiii "+folderPath)
         return this.excludedFolders.has(folderPath);
     }
     
