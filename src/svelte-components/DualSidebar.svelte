@@ -1,11 +1,15 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
-  import TestSidebar from './test_sidebar.svelte';
-  
+  import { getmainViewData } from '../modelInterface'
+  import TagTreeView from './TagTreeView.svelte';
+
   // State for sidebar collapse
   let leftCollapsed = writable(false);
   let rightCollapsed = writable(true);
-  
+
+  // actual variables to maintain state
+  let currentPath = $state("/")
+  let mainWindowData = $derived(getmainViewData(currentPath))
   function toggleLeft() {
     leftCollapsed.update(v => !v);
   }
@@ -26,7 +30,7 @@
   <div class="sidebar left-sidebar" class:collapsed={$leftCollapsed}>
     <div class="sidebar-header">
 
-      <button class="collapse-btn left-btn" on:click={toggleLeft} aria-label="Toggle left sidebar">
+      <button class="collapse-btn left-btn" onclick={toggleLeft} aria-label="Toggle left sidebar">
         {#if $leftCollapsed}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         {:else}
@@ -39,8 +43,8 @@
 
     </div>
     <div class="sidebar-content" class:hidden={$leftCollapsed}>
-      <!-- Right sidebar content -->
-      <TestSidebar />
+      <!-- Left sidebar content - Tag Tree -->
+      <TagTreeView />
     </div>
   </div>
 
@@ -80,7 +84,7 @@
   <!-- Right Sidebar -->
   <div class="sidebar right-sidebar" class:collapsed={$rightCollapsed}>
     <div class="sidebar-header">
-      <button class="collapse-btn right-btn" on:click={toggleRight} aria-label="Toggle right sidebar">
+      <button class="collapse-btn right-btn" onclick={toggleRight} aria-label="Toggle right sidebar">
         {#if $rightCollapsed}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         {:else}

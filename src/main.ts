@@ -14,7 +14,7 @@ import DualSidebar from './svelte-components/DualSidebar.svelte';
 import { mount, unmount } from 'svelte';
 
  
-
+import {initModelInterface} from './modelInterface'
 
 
 import {DEFAULT_SETTINGS, TagFolderSettingTab} from "./settings";
@@ -143,6 +143,8 @@ export default class TagFolderPlugin extends Plugin {
 		console.log('Tag tree constructed successfully');
 
   
+    initModelInterface(this.treeRoot)
+
 
 		var temp = this.treeRoot.getSortedTree()
 		console.log(temp)
@@ -165,8 +167,8 @@ export default class TagFolderPlugin extends Plugin {
   async activateView() {
     const w = this.app.workspace
     
-	let leaf = w.getLeaf(true)
-	await leaf.setViewState({ type: VIEW_TYPE_EXPLORER, active: true })
+    let leaf = w.getLeaf(true)
+    await leaf.setViewState({ type: VIEW_TYPE_EXPLORER, active: true })
     
     w.revealLeaf(leaf)
   }

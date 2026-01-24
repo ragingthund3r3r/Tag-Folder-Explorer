@@ -696,15 +696,23 @@ export class TreeRoot implements ITreeRoot {
      */
     private serializeTree(): unknown {
         const serializeNode = (node: ITagNode): any => {
+            const serializedChildren = Object.values(node.getChildren()).map(serializeNode);
+            
+            // Calculate total file count: direct files + all files in descendant tags
+            const directFileCount = node.getFiles().size;
+            const childFileCount = serializedChildren.reduce((sum, child) => sum + child.totalFileCount, 0);
+            const totalFileCount = directFileCount + childFileCount;
+            
             return {
                 name: node.getName(),
                 path: node.getPath(),
-                children: Object.values(node.getChildren()).map(serializeNode),
+                children: serializedChildren,
                 files: Array.from(node.getFiles()).map(file => ({
                     name: file.getName(),
                     path: file.getPath(),
                     tagpath: file.getTagPath(),
                 })),
+                totalFileCount: totalFileCount,
             };
         };
     
