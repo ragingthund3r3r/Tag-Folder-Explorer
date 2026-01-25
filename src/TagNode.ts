@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from 'obsidian';
-import { ITagNode, IFileLeaf } from './interfaces';
+import type { ITagNode, IFileLeaf } from './interfaces';
 import { FileLeaf } from './FileLeaf';
 import * as fs from 'fs';
 import * as path from 'path';

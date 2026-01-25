@@ -4,6 +4,8 @@ import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian'
 import { TreeRoot } from './TreeRoot';
 
 
+
+
 // Import the Counter Svelte component and the `mount` and `unmount` methods.
 
 // step 1

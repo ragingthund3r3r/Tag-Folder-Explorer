@@ -175,6 +175,156 @@ export class TreeRoot implements ITreeRoot {
     }
     
     /**
+     * Private method to kinda convert the TreeRoot object into a TagNode object.
+     * The reason for this is that while inside the whole tree, we basically just treat each tag like a TagNode object and all methods of interface basically have learnt to process TagNodes, the root node doesnt act like one. 
+     * Rather than forcing each method to take in a root aswell as a common node, we have two options
+     * 1. convert the root into a common node. (ideal solution, but it would take reworking on a very conceptual level. there is a reason why the root is separate and not like the nodes and id have to find a way to find the union of a node and a root for this)
+     * 2. create a proxy tagnode version of the root with refercnces to the original treeroot properties. since we will have the orchestrator and the controller layers in the middle, we can ealiy expose this "tag node" object and since its functions mimic the actions of what a root would do if treatd as a node, we get best of oth worlds
+     * 
+     * Only one issue in the current implementation is that properties of the root and node for eg children-rootTags which should be exactly the same arent the same and thus result in each function having to pickup that slack of unifying them and then proceeding.
+     * eg in this method, getChildren requires teh creation of a Record for the root. The rootTags of the root should already have been in a Record format. 
+     *
+     * @param null 
+     * @returns ITagNode  - The TagNode object version of the TreeRoot object with the same references as that of the TreeRoot. 
+     * 
+     */
+    private constructRootNode(): ITagNode{
+        let rootNode = {
+            // Creates new child tag object and adds it to rootTags
+            addChildNode: (newChildTagName: string): boolean => {
+                try {
+                    if (!newChildTagName || newChildTagName.trim() === '') {
+                        return false;
+                    }
+                    
+                    const childName = newChildTagName.trim();
+                    
+                    // Check if child already exists in rootTags
+                    for (const tag of this.rootTags) {
+                        if (tag.getName() === childName) {
+                            return false; // Child already exists
+                        }
+                    }
+                    
+                    // Create new root tag node
+                    const childNode = new TagNode(childName, childName, null, this.app);
+                    this.rootTags.add(childNode);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error adding child node to root:', error);
+                    return false;
+                }
+            },
+            
+            // Creates new file object and adds it to untaggedFiles
+            createNewFile: (nameOfFile: string, pathToFile: string): boolean => {
+                try {
+                    if (!nameOfFile || !pathToFile || nameOfFile.trim() === '' || pathToFile.trim() === '') {
+                        return false;
+                    }
+                    
+                    // Check if file already exists in untaggedFiles
+                    for (const file of this.untaggedFiles) {
+                        if (file.getName() === nameOfFile) {
+                            return false; // File already exists
+                        }
+                    }
+                    
+                    // Create FileLeaf instance and add to untaggedFiles
+                    const fileLeaf = new FileLeaf(nameOfFile.trim(), pathToFile.trim(), '', this.app);
+                    this.untaggedFiles.add(fileLeaf);
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error creating new file in root:', error);
+                    return false;
+                }
+            },
+            
+            createNewMeta: () => false,
+            getName: () => "",
+            getPath: () => "",
+            getParent: () => null,
+            
+            // Returns the rootTags as a Record
+            getChildren: (): Record<string, ITagNode> => {
+                const children: Record<string, ITagNode> = {};
+                for (const tag of this.rootTags) {
+                    children[tag.getName()] = tag;
+                }
+                return children;
+            },
+            
+            // Returns specific tag from rootTags
+            getChild: (nameOfChild: string): ITagNode | null => {
+                for (const tag of this.rootTags) {
+                    if (tag.getName() === nameOfChild) {
+                        return tag;
+                    }
+                }
+                return null;
+            },
+            
+            // Returns the untaggedFiles set
+            getFiles: () => this.untaggedFiles,
+            
+            // Returns specific file from untaggedFiles
+            getFile: (nameOfFile: string): IFileLeaf | null => {
+                for (const file of this.untaggedFiles) {
+                    if (file.getName() === nameOfFile) {
+                        return file;
+                    }
+                }
+                return null;
+            },
+            
+            readMeta: () => ({}),
+            renameNode: (newName: string) => false,
+            editPath: (newPath: string) => false,
+            updateMeta: (payload: Record<string, any>) => false,
+            
+            // Removes specific tag from rootTags
+            removeChildNode: (childTagName: string): boolean => {
+                try {
+                    // Find and remove the child from rootTags
+                    for (const tag of this.rootTags) {
+                        if (tag.getName() === childTagName) {
+                            this.rootTags.delete(tag);
+                            return true;
+                        }
+                    }
+                    return false; // Child not found
+                } catch (error) {
+                    console.error('Error removing child node from root:', error);
+                    return false;
+                }
+            },
+            
+            // Removes specific file from untaggedFiles
+            removeFile: (filename: string): boolean => {
+                try {
+                    // Find and remove the file from untaggedFiles
+                    for (const file of this.untaggedFiles) {
+                        if (file.getName() === filename) {
+                            this.untaggedFiles.delete(file);
+                            return true;
+                        }
+                    }
+                    return false; // File not found
+                } catch (error) {
+                    console.error('Error removing file from root:', error);
+                    return false;
+                }
+            },
+            deleteMeta: () => false
+        };
+        return rootNode;
+    }
+
+
+
+    /**
      * Returns a specific node from the entire tree by its tag path
      * 
      * Uses the full tag path to directly navigate to the node without searching.
@@ -186,15 +336,17 @@ export class TreeRoot implements ITreeRoot {
      * Used when: Node lookup, node-based operations, tree navigation
      */
     public getNode(tagpath: string): ITagNode | null {
-        if (!tagpath || tagpath.trim() === '') {
-            return null;
-        }
+        if (!tagpath || tagpath.trim() === '') {{
+            let rootNode = this.constructRootNode()
+            return rootNode;
+        }}
         
         // Split the tag path into segments
         const tagSegments = tagpath.split('/').filter(segment => segment.length > 0);
         
         if (tagSegments.length === 0) {
-            return null;
+            let rootNode = this.constructRootNode()
+            return rootNode;
         }
         
         // Find the root tag
@@ -571,6 +723,8 @@ export class TreeRoot implements ITreeRoot {
                 
                 // Check if this tag path already exists in the tree
                 const existingNode = this.getNode(tagPath);
+
+                // console.log(tagPath+"   "+(existingNode) )
                 
                 if (existingNode) {
                     // Node already exists, move on
