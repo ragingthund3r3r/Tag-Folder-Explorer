@@ -7,6 +7,15 @@ import { TreeRoot } from './TreeRoot';
 /*
 
 need to work on this brach for introdcing and using the pubsub architecture 
+
+
+Main issue:
+
+if a workspace is open when i close obsidain, when i open it up again i see an empty view. if i open a new window, its great. so basically metadata is udataing in the background and constructing the tree. i want a blank view to be refreshed with the actual view when metadata is ready.
+
+
+
+
 **/
 
 
