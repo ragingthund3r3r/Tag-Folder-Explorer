@@ -1,5 +1,5 @@
 import { TFile, App } from 'obsidian';
-import { IFileLeaf } from './interfaces';
+import type { IFileLeaf } from './interfaces';
 
 /**
  * FileLeaf class - Represents individual files as leaf nodes in the tag tree

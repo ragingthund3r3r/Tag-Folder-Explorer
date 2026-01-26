@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getmainViewData } from '../modelInterface'
   import type { ISerializedTagNode, frontendFile, frontendFolder } from '../interfaces'
-  
+  import { openFileInNewTab } from '../windows'
 
   // Props
   interface Props {
@@ -41,7 +41,11 @@
 
 	function handleFileClick(file:frontendFile) {
 
-		console.log('File clicked!');
+		// console.log('File clicked!');
+    let filepath = file.path
+
+    // console.log(filepath)
+    openFileInNewTab(filepath)
 	}
 
 

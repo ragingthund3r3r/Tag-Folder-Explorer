@@ -67,11 +67,11 @@
   <!-- Main Content Area -->
   <div class="main-content">
 
-    
+      
 
     <div class="main-header">
 
-      <span class="main-title"><strong style="color: var(--color-base-60);">Vault:/</strong>{currentPath}</span>
+      <span class="main-title"><strong style="color: var(--color-base-60);">Home:/</strong>{currentPath}</span>
 
 
     </div>

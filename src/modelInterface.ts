@@ -1,6 +1,5 @@
 import type { TreeRoot } from './TreeRoot';
 import type { ISerializedTagNode, ITagNode } from './interfaces'
-import { writable } from 'svelte/store';
 
 let treeObj: TreeRoot | null = null;
 
