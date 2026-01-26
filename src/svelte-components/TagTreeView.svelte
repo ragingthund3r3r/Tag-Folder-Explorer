@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getleftSidebarTree } from '../modelInterface'
+  import { getleftSidebarTree, treeReady } from '../modelInterface'
 
   // Type definitions
   interface FileData {
@@ -25,6 +25,13 @@
   let treeData = $state<TreeData>(getleftSidebarTree() as TreeData)
   let expandedTags = $state<Set<string>>(new Set())
   let selectedFile = $state<string | null>(null)
+
+  // Subscribe to tree updates - refresh data when tree becomes ready
+  $effect(() => {
+    // This runs whenever $treeReady changes
+    const _ = $treeReady;
+    treeData = getleftSidebarTree() as TreeData;
+  });
 
   function toggleTag(path: string) {
     if (expandedTags.has(path)) {

@@ -8,7 +8,7 @@
   let rightCollapsed = writable(true);
 
   // actual variables to maintain state
-  let currentPath = $state("")
+  let currentPath = $state("/")
   function toggleLeft() {
     leftCollapsed.update(v => !v);
   }
@@ -60,7 +60,7 @@
 
     <div class="main-header">
 
-      <span class="main-title">/{currentPath}</span>
+      <span class="main-title"><strong style="color: var(--color-base-60);">Vault:/</strong>{currentPath}</span>
 
 
     </div>
@@ -216,10 +216,13 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
 
   .main-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     padding-left: 5px;
     padding-right: 5px;
     background-color: var(--background-primary);
+    min-height: 0;
   }
 
   .placeholder-text {
@@ -278,6 +281,9 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
     border-bottom: 1px solid var(--background-modifier-border);
     background-color: var(--background-secondary-alt);
     min-height: 40px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .main-subheader {
@@ -288,6 +294,9 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
     border-bottom: 1px solid var(--background-modifier-border);
     background-color: var(--background-primary-alt);
     min-height: 40px;
+    position: sticky;
+    top: 40px;
+    z-index: 9;
   }
 
   

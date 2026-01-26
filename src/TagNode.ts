@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from 'obsidian';
-import type { ITagNode, IFileLeaf } from './interfaces';
+import type { ITagNode, IFileLeaf, ISerializedTagNode  } from './interfaces';
 import { FileLeaf } from './FileLeaf';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -789,5 +789,36 @@ legend: |-
         }
     }
     
+
+   
+    /**
+     * Serializes a TagNode object into a static format for UI rendering
+     * 
+     * Converts a TagNode object with object references into a simple static object
+     * with string-based identifiers. This static format is designed to be easily
+     * consumed by the UI interface without needing to traverse object references.
+     * 
+     * @param node - The TagNode object to serialize
+     * @returns ISerializedTagNode - Static representation of the tag node
+     * 
+     */
+    serializeTagNode(): ISerializedTagNode {
+        // Get parent name (null if root node)
+        const parentName = this.getParent() ? this.getParent()!.getName() : null;
+        
+        // Get children names
+        const childrenNames = Object.keys(this.getChildren());
+        
+        // Get file names
+        const fileNames = Array.from(this.getFiles()).map(file => file.getName());
+        
+        return {
+            name: this.getName(),
+            path: this.getPath(),
+            parent: parentName,
+            children: childrenNames,
+            files: fileNames
+        };
+    }
 
 }
