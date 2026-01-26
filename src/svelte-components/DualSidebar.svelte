@@ -8,7 +8,7 @@
   let rightCollapsed = writable(true);
 
   // actual variables to maintain state
-  let currentPath = $state("/")
+  let currentPath = $state("")
   function toggleLeft() {
     leftCollapsed.update(v => !v);
   }

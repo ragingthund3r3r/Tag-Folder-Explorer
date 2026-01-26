@@ -4,20 +4,14 @@ import { writable } from 'svelte/store';
 
 let treeObj: TreeRoot | null = null;
 
-/**
- * A Svelte store that signals when the tree data has been updated.
- * Components can subscribe to this to know when to refresh their data.
- * The value increments each time the tree is initialized/updated.
- */
-export const treeReady = writable(0);
+
 
 /**
  * Initialize the model interface with a TreeRoot instance
  */
 export function initModelInterface(treer: TreeRoot) {
     treeObj = treer;
-    // Notify all subscribers that the tree is ready/updated
-    treeReady.update(n => n + 1);
+
 }
 
 /**

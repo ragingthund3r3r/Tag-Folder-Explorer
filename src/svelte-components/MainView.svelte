@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getmainViewData, treeReady } from '../modelInterface'
+  import { getmainViewData } from '../modelInterface'
   import type { ISerializedTagNode } from '../interfaces'
   
 
@@ -10,20 +10,10 @@
 
   let { currentPath }: Props = $props();
 
-  // Track tree ready state to trigger reactivity
-  let treeVersion = $state(0);
-  
-  // Subscribe to tree updates - refresh when tree becomes ready
-  $effect(() => {
-    treeVersion = $treeReady;
-  });
 
-  // Fetch data based on current path (also reacts to treeVersion changes)
-  let mainViewData: ISerializedTagNode | null = $derived.by(() => {
-    // Reference treeVersion to make this reactive to tree updates
-    const _ = treeVersion;
-    return getmainViewData(currentPath);
-  });
+
+  let mainViewData: ISerializedTagNode | null =  getmainViewData(currentPath);
+
   
   // console.log("im tesing ")
   // console.log(mainViewData)
