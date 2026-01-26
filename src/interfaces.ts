@@ -722,12 +722,51 @@ export interface ISerializedTagNode {
     parent: string | null;
     
     /**
-     * Array of names of child tags
+     * Array of child tags with their names and paths
      */
-    children: string[];
+    children: { name: string; path: string }[];
     
     /**
-     * Array of file names present under this tag
+     * Array of files with their names and paths
      */
-    files: string[];
+    files: { name: string; path: string }[];
+}
+
+
+
+/**
+ * Type for frontend representation of the static folders
+ * 
+ * Contains the folder name and tag tree path which can be used for navigation 
+ */
+export interface frontendFolder {
+    /**
+     * The name of the tagfolder
+     */
+    name: string;
+    
+    /**
+     * The full nested path of the tag 
+     */
+    path: string;
+    
+}
+
+/**
+ * Type for frontend representation of the static files
+ * 
+ * Contains the file name and its physical path which can be used for opening in the background  
+ * 
+ */
+export interface frontendFile {
+    
+    /**
+     * The name of the file
+     */
+    name: string;
+    
+    /**
+     * The full physical path of the file
+     */
+    path: string;
 }

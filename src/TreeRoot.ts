@@ -320,18 +320,24 @@ export class TreeRoot implements ITreeRoot {
             deleteMeta: () => false,
             serializeTagNode: (): ISerializedTagNode => {
                
-                // Get children names
-                const childrenNames = Object.keys(rootNode.getChildren());
+                // Get children with names and paths
+                const childrenData = Object.values(rootNode.getChildren()).map(child => ({
+                    name: child.getName(),
+                    path: child.getPath()
+                }));
                 
-                // Get file names
-                const fileNames = Array.from(rootNode.getFiles()).map(file => file.getName());
+                // Get files with names and paths
+                const filesData = Array.from(rootNode.getFiles()).map(file => ({
+                    name: file.getName(),
+                    path: file.getPath()
+                }));
                 
                 return {
                     name: rootNode.getName(),
                     path: rootNode.getPath(),
                     parent: null,
-                    children: childrenNames,
-                    files: fileNames
+                    children: childrenData,
+                    files: filesData
                 };
 
 

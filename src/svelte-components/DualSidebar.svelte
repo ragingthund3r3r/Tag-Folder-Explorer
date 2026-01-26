@@ -4,17 +4,28 @@
   import MainView from './MainView.svelte';
 
   // State for sidebar collapse
-  let leftCollapsed = writable(false);
-  let rightCollapsed = writable(true);
+  let leftCollapsed = $state(false);
+  let rightCollapsed = $state(true);
 
   // actual variables to maintain state
   let currentPath = $state("")
+  // let currentPath = writable("")
+
+
+
   function toggleLeft() {
-    leftCollapsed.update(v => !v);
+    leftCollapsed = !leftCollapsed;
   }
   
   function toggleRight() {
-    rightCollapsed.update(v => !v);
+    rightCollapsed = !rightCollapsed;
+  }
+
+
+
+
+  function handleUpdate(newData: string) {
+    currentPath = newData;
   }
 </script>
 
@@ -26,22 +37,22 @@
 
 <div class="dual-sidebar-container">
   <!-- Left Sidebar -->
-  <div class="sidebar left-sidebar" class:collapsed={$leftCollapsed}>
+  <div class="sidebar left-sidebar" class:collapsed={leftCollapsed}>
     <div class="sidebar-header">
 
       <button class="collapse-btn left-btn" onclick={toggleLeft} aria-label="Toggle left sidebar">
-        {#if $leftCollapsed}
+        {#if leftCollapsed}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         {:else}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         {/if}
       </button>           
       
-      <span class="sidebar-title left-title"  class:hidden={$leftCollapsed}>Left Sidebar</span>
+      <span class="sidebar-title left-title"  class:hidden={leftCollapsed}>Left Sidebar</span>
 
 
     </div>
-    <div class="sidebar-content" class:hidden={$leftCollapsed}>
+    <div class="sidebar-content" class:hidden={leftCollapsed}>
       <!-- Left sidebar content - Tag Tree -->
       <TagTreeView />
     </div>
@@ -72,7 +83,7 @@
 
     </div>
 
-    <MainView currentPath={currentPath} />
+    <MainView currentPath={currentPath}  onUpdate={handleUpdate} />
   </div>
 
 
@@ -82,18 +93,18 @@
 
 
   <!-- Right Sidebar -->
-  <div class="sidebar right-sidebar" class:collapsed={$rightCollapsed}>
+  <div class="sidebar right-sidebar" class:collapsed={rightCollapsed}>
     <div class="sidebar-header">
       <button class="collapse-btn right-btn" onclick={toggleRight} aria-label="Toggle right sidebar">
-        {#if $rightCollapsed}
+        {#if rightCollapsed}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         {:else}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         {/if}
       </button>
-      <span class="sidebar-title right-title"  class:hidden={$rightCollapsed}>Right Sidebar</span>
+      <span class="sidebar-title right-title"  class:hidden={rightCollapsed}>Right Sidebar</span>
     </div>
-    {#if !$rightCollapsed}
+    {#if !rightCollapsed}
       <div class="sidebar-content">
         <!-- Left sidebar content will go here -->
         <p class="placeholder-text">right sidebar content

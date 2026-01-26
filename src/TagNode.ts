@@ -806,18 +806,24 @@ legend: |-
         // Get parent name (null if root node)
         const parentName = this.getParent() ? this.getParent()!.getName() : null;
         
-        // Get children names
-        const childrenNames = Object.keys(this.getChildren());
+        // Get children with names and paths
+        const childrenData = Object.values(this.getChildren()).map(child => ({
+            name: child.getName(),
+            path: child.getPath()
+        }));
         
-        // Get file names
-        const fileNames = Array.from(this.getFiles()).map(file => file.getName());
+        // Get files with names and paths
+        const filesData = Array.from(this.getFiles()).map(file => ({
+            name: file.getName(),
+            path: file.getPath()
+        }));
         
         return {
             name: this.getName(),
             path: this.getPath(),
             parent: parentName,
-            children: childrenNames,
-            files: fileNames
+            children: childrenData,
+            files: filesData
         };
     }
 
