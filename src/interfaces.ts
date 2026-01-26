@@ -433,6 +433,16 @@ export interface ITagNode {
     deleteMeta(): boolean;
     
 
+
+    /**
+     * Returns the serialized version of the current node. Easy way to get the node to render in the frontend
+     * 
+     */
+    serializeTagNode(): ISerializedTagNode ; 
+
+    
+
+
 }
 
 
@@ -683,4 +693,41 @@ export interface ITreeRoot {
      */
     delChildFile(filename:string, filepath:string, tagpath:string): boolean | null;
 
+
+
+
+}
+
+/**
+ * Interface for serialized TagNode - static representation for UI rendering
+ * 
+ * This interface represents a TagNode in a serialized, static format that can be
+ * easily used to populate the UI interface. All object references are converted
+ * to simple string identifiers.
+ */
+export interface ISerializedTagNode {
+    /**
+     * The name of the tag
+     */
+    name: string;
+    
+    /**
+     * The full nested path of the tag (e.g., "subject/math")
+     */
+    path: string;
+    
+    /**
+     * The name of the parent tag, or null if this is a root tag
+     */
+    parent: string | null;
+    
+    /**
+     * Array of names of child tags
+     */
+    children: string[];
+    
+    /**
+     * Array of file names present under this tag
+     */
+    files: string[];
 }

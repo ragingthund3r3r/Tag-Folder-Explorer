@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { getmainViewData } from '../modelInterface'
+  import { getmainViewData, treeReady } from '../modelInterface'
+  import type { ISerializedTagNode } from '../interfaces'
   
 
   // Props
@@ -9,8 +10,20 @@
 
   let { currentPath }: Props = $props();
 
-  // Fetch data based on current path
-  let mainViewData = $derived(getmainViewData(currentPath))
+  // Track tree ready state to trigger reactivity
+  let treeVersion = $state(0);
+  
+  // Subscribe to tree updates - refresh when tree becomes ready
+  $effect(() => {
+    treeVersion = $treeReady;
+  });
+
+  // Fetch data based on current path (also reacts to treeVersion changes)
+  let mainViewData: ISerializedTagNode | null = $derived.by(() => {
+    // Reference treeVersion to make this reactive to tree updates
+    const _ = treeVersion;
+    return getmainViewData(currentPath);
+  });
   
   // console.log("im tesing ")
   // console.log(mainViewData)
@@ -23,27 +36,66 @@
 
 
   <div class="main-content-area">
-    <p class="placeholder-text">Main content area</p>
+
     {#if mainViewData}
-      <pre class="debug-info">{mainViewData}</pre>
+      <!-- <pre class="debug-info">{JSON.stringify(mainViewData, null, 2)}</pre> -->
       
     {/if}
+
+
+<div class="main-view">
+  {#if mainViewData}
+    <div class="file-grid">
+      <!-- Render child folders/tags -->
+      {#each mainViewData.children as childName}
+        <div class="item folder">
+          <div class="icon">📁</div>
+          <div class="label">{childName}</div>
+        </div>
+      {/each}
+
+      <!-- Render files -->
+      {#each mainViewData.files as fileName}
+        <div class="item file">
+          <div class="icon">📄</div>
+          <div class="label">{fileName}</div>
+        </div>
+      {/each}
+    </div>
+  {:else}
+    <div class="empty-state">
+      <p>No data available for this path</p>
+    </div>
+  {/if}
+</div>
+
+
+
+
+
+
+
+
+
+
 
   </div>
 </div>
 
 <style>
   .main-view-container {
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
   }
 
 
   .main-content-area {
     flex: 1;
-    overflow-y: auto;
+    overflow: auto;
+    min-height: 0;
     padding: 16px;
   }
 
@@ -62,4 +114,66 @@
     overflow-x: auto;
     color: var(--text-normal);
   }
+
+
+
+
+
+
+
+
+.file-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+  gap:12px;
+}
+
+.item{
+  background:var(--bg-item);
+  border:1px solid var(--border-subtle);
+  /* border:10px solid blue; */
+
+  border-radius:6px;
+  padding:12px 8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.item:hover{
+  background:var(--bg-item-hover);
+}
+
+.icon{
+  font-size:28px;
+  line-height:1;
+}
+
+.label{
+  font-size:13px;
+  text-align:center;
+  word-break:break-word;
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 </style>

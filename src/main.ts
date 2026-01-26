@@ -4,6 +4,11 @@ import { Plugin, ItemView, WorkspaceLeaf } from 'obsidian'
 import { TreeRoot } from './TreeRoot';
 
 
+/*
+
+
+**/
+
 
 
 // Import the Counter Svelte component and the `mount` and `unmount` methods.
@@ -138,22 +143,25 @@ export default class TagFolderPlugin extends Plugin {
 
 		console.log('Tag Folder Plugin loaded');
 
-		
-		// Construct the tag tree structure
-		this.treeRoot = new TreeRoot(this.app, this.settings);
-		
-		console.log('Tag tree constructed successfully');
-
-  
-    initModelInterface(this.treeRoot)
-
-
-		var temp = this.treeRoot.getSortedTree()
-		console.log(temp)
-
-
     this.registerView(VIEW_TYPE_EXPLORER, leaf => new ExplorerView(leaf))
     this.registerView(VIEW_TYPE_DUAL_SIDEBAR, leaf => new DualSidebarView(leaf))
+
+		// Wait for the metadata cache to be fully resolved before computing the tree
+		// The metadata cache is populated asynchronously after vault load,
+		// so we need to wait for it to be ready before building the tag tree
+		this.app.workspace.onLayoutReady(() => {
+			// Check if metadata cache is already resolved
+			if (this.app.metadataCache.resolvedLinks) {
+				this.initializeTree();
+			} else {
+				// Wait for the metadata cache to finish resolving
+				const resolveRef = this.app.metadataCache.on('resolved', () => {
+					this.initializeTree();
+					this.app.metadataCache.offref(resolveRef);
+				});
+				this.registerEvent(resolveRef);
+			}
+		});
 
 
     this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
@@ -165,6 +173,21 @@ export default class TagFolderPlugin extends Plugin {
     
   }  
 
+	/**
+	 * Initializes the tag tree after the metadata cache is ready.
+	 * This is called after both the layout and metadata cache are resolved.
+	 */
+	private initializeTree(): void {
+		// Construct the tag tree structure
+		this.treeRoot = new TreeRoot(this.app, this.settings);
+		
+		console.log('Tag tree constructed successfully (metadata cache resolved)');
+
+		initModelInterface(this.treeRoot);
+
+		const temp = this.treeRoot.getSortedTree();
+		console.log(temp);
+	}
 
   async activateView() {
     const w = this.app.workspace
@@ -189,6 +212,9 @@ export default class TagFolderPlugin extends Plugin {
 		
 		// Clean up the tree reference
 		this.treeRoot = null;
+    
+
+    
 	}
 
 	async loadSettings() {

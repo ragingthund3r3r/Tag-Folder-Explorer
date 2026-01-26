@@ -1,5 +1,5 @@
 import { App, TFile, TFolder } from 'obsidian';
-import type { ITreeRoot, ITagNode, IFileLeaf } from './interfaces';
+import type { ITreeRoot, ITagNode, IFileLeaf, ISerializedTagNode} from './interfaces';
 import { TagNode } from './TagNode';
 import { FileLeaf } from './FileLeaf';
 import * as fs from 'fs';
@@ -317,7 +317,25 @@ export class TreeRoot implements ITreeRoot {
                     return false;
                 }
             },
-            deleteMeta: () => false
+            deleteMeta: () => false,
+            serializeTagNode: (): ISerializedTagNode => {
+               
+                // Get children names
+                const childrenNames = Object.keys(rootNode.getChildren());
+                
+                // Get file names
+                const fileNames = Array.from(rootNode.getFiles()).map(file => file.getName());
+                
+                return {
+                    name: rootNode.getName(),
+                    path: rootNode.getPath(),
+                    parent: null,
+                    children: childrenNames,
+                    files: fileNames
+                };
+
+
+            }
         };
         return rootNode;
     }
@@ -879,4 +897,6 @@ export class TreeRoot implements ITreeRoot {
             })),
         };
     }
+ 
 }
+
