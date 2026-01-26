@@ -54,7 +54,7 @@
     </div>
     <div class="sidebar-content" class:hidden={leftCollapsed}>
       <!-- Left sidebar content - Tag Tree -->
-      <TagTreeView />
+      <TagTreeView currentPath={currentPath}  onUpdate={handleUpdate}  />
     </div>
   </div>
 

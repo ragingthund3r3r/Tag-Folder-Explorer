@@ -1,6 +1,15 @@
 <script lang="ts">
   import { getleftSidebarTree} from '../modelInterface'
+  import type { frontendFile, frontendFolder } from '../interfaces'
 
+  import { openFileInNewTab } from '../windows'
+
+  // Props
+  interface Props {
+    currentPath: string;
+    onUpdate: (newPath: string) => void;  // Add function signature
+  }
+  
   // Type definitions
   interface FileData {
     name: string;
@@ -26,6 +35,9 @@
   let expandedTags = $state<Set<string>>(new Set())
   let selectedFile = $state<string | null>(null)
 
+
+  let { currentPath, onUpdate }:Props = $props();
+
   treeData = getleftSidebarTree() as TreeData;
 
 
@@ -46,6 +58,31 @@
   function isExpanded(path: string): boolean {
     return expandedTags.has(path);
   }
+
+  function handleFolderClick(folder:string) {
+
+ 
+    let folderpath = folder
+		// console.log('Folder clicked!');
+    // console.log(foldername+" "+folderpath)
+
+    onUpdate(folderpath);
+
+    
+	}
+
+  function handleFileClick(file:string) {
+
+		// console.log('File clicked!');
+    let filepath = file
+
+    // console.log(filepath)
+    openFileInNewTab(filepath)
+	}
+
+
+
+
 </script>
 
 {#snippet renderTagNode(node: TagNodeData)}
@@ -54,17 +91,26 @@
     <div 
       class="tree-item-self nav-folder-title is-clickable mod-collapsible"
       data-path={node.path}
-      role="button"
-      tabindex="0"
-      onclick={() => toggleTag(node.path)}
-      onkeydown={(e) => e.key === 'Enter' && toggleTag(node.path)}
     >
-      <div class="tree-item-icon collapse-icon" class:is-collapsed={!isExpanded(node.path)}>
+      <div 
+        class="tree-item-icon collapse-icon is-clickable" 
+        class:is-collapsed={!isExpanded(node.path)}
+        role="button"
+        tabindex="0"
+        onclick={() => toggleTag(node.path)}
+        onkeydown={(e) => e.key === 'Enter' && toggleTag(node.path)}
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon right-triangle">
           <path d="M3 8L12 17L21 8"></path>
         </svg>
       </div>
-      <div class="tree-item-inner nav-folder-title-content">{node.name}</div>
+      <div 
+        class="tree-item-inner nav-folder-title-content"
+        role="button"
+        tabindex="0"
+        onclick={() => handleFolderClick(node.path)}
+        onkeydown={(e) => e.key === 'Enter' && handleFolderClick(node.path)}
+      >{node.name}</div>
       <div class="tree-item-flair-outer">
         <span class="tree-item-flair">{node.totalFileCount}</span>
       </div>
@@ -82,8 +128,8 @@
                 data-path={file.path}
                 role="button"
                 tabindex="0"
-                onclick={() => selectFile(file.path)}
-                onkeydown={(e) => e.key === 'Enter' && selectFile(file.path)}
+                onclick={() => handleFileClick(file.path)}
+                onkeydown={(e) => e.key === 'Enter' && handleFileClick(file.path)}
               >
                 <div class="tree-item-inner nav-file-title-content">{file.name}</div>
               </div>
