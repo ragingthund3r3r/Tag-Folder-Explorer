@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getleftSidebarTree} from '../modelInterface'
-  import type { frontendFile, frontendFolder } from '../interfaces'
 
   import { openFileInNewTab } from '../windows'
 
@@ -8,6 +7,7 @@
   interface Props {
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
+    onFocusChange?: (type: 'folder' | 'file', path: string) => void;  // Handler for focus changes
   }
   
   // Type definitions
@@ -36,7 +36,7 @@
   let selectedFile = $state<string | null>(null)
 
 
-  let { currentPath, onUpdate }:Props = $props();
+  let { currentPath, onUpdate, onFocusChange }:Props = $props();
 
   treeData = getleftSidebarTree() as TreeData;
 
@@ -68,7 +68,10 @@
 
     onUpdate(folderpath);
 
-    
+    if (onFocusChange) {
+      onFocusChange('folder', folderpath);
+    } 
+
 	}
 
   function handleFileClick(file:string) {
@@ -78,6 +81,10 @@
 
     // console.log(filepath)
     openFileInNewTab(filepath)
+
+    if (onFocusChange) {
+      onFocusChange('file', filepath);
+    }
 	}
 
 

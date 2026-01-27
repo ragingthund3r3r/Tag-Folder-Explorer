@@ -2,14 +2,23 @@
   import { writable } from 'svelte/store';
   import TagTreeView from './TagTreeView.svelte';
   import MainView from './MainView.svelte';
+	import MetadataView from './MetadataView.svelte';
 
   // State for sidebar collapse
   let leftCollapsed = $state(false);
-  let rightCollapsed = $state(true);
+  let rightCollapsed = $state(false);
 
   // actual variables to maintain state
   let currentPath = $state("")
   // let currentPath = writable("")
+
+  // State for currently focused object
+  let focusedObjectType = $state<'folder' | 'file' >('folder');
+  let focusedObjectPath = $state<string>("");
+  
+  // focusedObjectPath will store:
+  // - Tag path (e.g., "programming/typescript") if focusedObjectType is 'folder'
+  // - Physical file path (e.g., "path/to/file.md") if focusedObjectType is 'file'
 
 
 
@@ -21,8 +30,15 @@
     rightCollapsed = !rightCollapsed;
   }
 
-
-
+  // Handle updates to focused object
+  function handleFocusChange(type: 'folder' | 'file', path: string) {
+    focusedObjectType = type;
+    focusedObjectPath = path;
+    console.log("__")
+    console.log(type)
+    console.log(path)
+    console.log("__")
+  }
 
   function handleUpdate(newData: string) {
     currentPath = newData;
@@ -54,7 +70,7 @@
     </div>
     <div class="sidebar-content" class:hidden={leftCollapsed}>
       <!-- Left sidebar content - Tag Tree -->
-      <TagTreeView currentPath={currentPath}  onUpdate={handleUpdate}  />
+      <TagTreeView currentPath={currentPath}  onUpdate={handleUpdate} onFocusChange={handleFocusChange}  />
     </div>
   </div>
 
@@ -83,7 +99,7 @@
 
     </div>
 
-    <MainView currentPath={currentPath}  onUpdate={handleUpdate} />
+    <MainView currentPath={currentPath}  onUpdate={handleUpdate} onFocusChange={handleFocusChange} />
   </div>
 
 
@@ -106,25 +122,8 @@
     </div>
     {#if !rightCollapsed}
       <div class="sidebar-content">
-        <!-- Left sidebar content will go here -->
-        <p class="placeholder-text">right sidebar content
-
-
-
-            Level the playing field turn the crank time vampire yet critical mass one-sheet we need this overall to be busier and more active are there any leftovers in the kitchen? Organic growth keep it lean, nor best practices dunder mifflin we need to crystallize a plan.
-
-Let's schedule a standup during the sprint to review our kpis who's responsible for the ask for this request? tbrand terrorists, for personal development 4-blocker and blue sky those options are already baked in with this model.
-
-Nail it down execute gain traction, we need distributors to evangelize the new line to local markets cross sabers. On this journey throughput so digitalize, nor note for the previous submit: the devil should be on the left shoulder future-proof prethink.
-
-Move the needle overcome key issues to meet key milestones sacred cow, for locked and loaded, but productize. High-level five-year strategic plan thinking outside the box, yet one-sheet, t-shaped individual nor move the needle, paddle on both sides.
-
-Per my previous email tread it daily. Parallel path synergize productive mindfulness or cannibalize let's see if we can dovetail these two projects rock Star/Ninja, and cross-pollination low-hanging fruit.
-
-Beef up let me know if you need me to crack any skulls and your work on this project has been really impactful, but run it up the flagpole, ping the boss and circle back. Sea change deploy where the metal hits the meat but rock Star/Ninja UI, or low engagement hard stop.
-
-
-        </p>
+        <!-- Left sidebar content will go here --> 
+        <MetadataView  currentPath={currentPath} focusedObjectType={focusedObjectType} focusedObjectPath={focusedObjectPath}/>
       </div>
     {/if}
   </div>
@@ -236,10 +235,6 @@ Beef up let me know if you need me to crack any skulls and your work on this pro
     min-height: 0;
   }
 
-  .placeholder-text {
-    color: var(--text-muted);
-    font-size: 14px;
-  }
 
   .hidden {
     display: none;

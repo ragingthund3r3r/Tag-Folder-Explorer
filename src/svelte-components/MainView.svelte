@@ -7,10 +7,11 @@
   interface Props {
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
+    onFocusChange?: (type: 'folder' | 'file', path: string) => void;  // Handler for focus changes
   }
 
 
-  let { currentPath, onUpdate }:Props = $props();
+  let { currentPath, onUpdate, onFocusChange }:Props = $props();
   // let { currentPath }: Props = $props();
 
 
@@ -23,9 +24,17 @@
   // console.log(mainViewData?.getChildren())
   // console.log(mainViewData?.getFiles())
 
+  // Track click timeouts to prevent single-click on double-click
+  let clickTimeout: number | null = null;
+  const CLICK_DELAY = 250; // milliseconds
 
-  function handleFolderClick(folder:frontendFolder) {
 
+  function handleFolderDblClick(folder:frontendFolder) {
+    // Cancel any pending single-click
+    if (clickTimeout !== null) {
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+    }
  
     let foldername = folder.name
     let folderpath = folder.path
@@ -33,20 +42,82 @@
     // console.log(foldername+" "+folderpath)
 
     onUpdate(folderpath);
+    
+    // Update focus state when folder is opened
+    if (onFocusChange) {
+      onFocusChange('folder', folderpath);
+    }
 
     
 	}
 
 
 
-	function handleFileClick(file:frontendFile) {
+	function handleFileDblClick(file:frontendFile) {
+    // Cancel any pending single-click
+    if (clickTimeout !== null) {
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+    }
 
 		// console.log('File clicked!');
     let filepath = file.path
 
     // console.log(filepath)
     openFileInNewTab(filepath)
+    
+    // Update focus state when file is opened
+    if (onFocusChange) {
+      onFocusChange('file', filepath);
+    }
 	}
+
+
+
+  function handleFolderClick(folder:frontendFolder) {
+    // Delay single-click action to check for double-click
+    if (clickTimeout !== null) {
+      clearTimeout(clickTimeout);
+    }
+    
+    clickTimeout = window.setTimeout(() => {
+      let foldername = folder.name
+      let folderpath = folder.path
+      // console.log('Folder clicked!');
+      // console.log(foldername+" "+folderpath)
+      
+      // Update focus state when folder is opened
+      if (onFocusChange) {
+        onFocusChange('folder', folderpath);
+      }
+      
+      clickTimeout = null;
+    }, CLICK_DELAY);
+	}
+
+
+
+	function handleFileClick(file:frontendFile) {
+    // Delay single-click action to check for double-click
+    if (clickTimeout !== null) {
+      clearTimeout(clickTimeout);
+    }
+    
+    clickTimeout = window.setTimeout(() => {
+      // console.log('File clicked!');
+      let filepath = file.path
+
+      
+      // Update focus state when file is opened
+      if (onFocusChange) {
+        onFocusChange('file', filepath);
+      }
+      
+      clickTimeout = null;
+    }, CLICK_DELAY);
+	}
+
+
 
 
 
@@ -75,7 +146,7 @@
     <div class="file-grid">
       <!-- Render child folders/tags -->
       {#each mainViewData.children as child}
-        <div class="item folder" role="button" tabindex="0" onclick={() => handleFolderClick(child)} onkeydown={(e) => handleKeyDown(e, handleFolderClick, child)}>
+        <div class="item folder" role="button" tabindex="0" onclick={() => handleFolderClick(child)}  ondblclick={() => handleFolderDblClick(child)} onkeydown={(e) => handleKeyDown(e, handleFolderDblClick, child)}>
           <div class="icon">📁</div>
           <div class="label">{child.name}</div>
         </div>
@@ -83,7 +154,7 @@
 
       <!-- Render files -->
       {#each mainViewData.files as file}
-        <div class="item file" role="button" tabindex="0" onclick={() => handleFileClick(file)} onkeydown={(e) => handleKeyDown(e, handleFileClick, file)}>
+        <div class="item file" role="button" tabindex="0" onclick={() => handleFileClick(file)} ondblclick={() => handleFileDblClick(file)} onkeydown={(e) => handleKeyDown(e, handleFileDblClick, file)}>
           <div class="icon">📄</div>
           <div class="label">{file.name}</div>
         </div>
@@ -125,27 +196,6 @@
     min-height: 0;
     padding: 16px;
   }
-
-  .placeholder-text {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-
-  .debug-info {
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    padding: 12px;
-    font-size: 12px;
-    overflow-x: auto;
-    color: var(--text-normal);
-  }
-
-
-
-
-
 
 
 

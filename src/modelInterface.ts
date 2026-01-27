@@ -34,7 +34,29 @@ export function getleftSidebarTree() {
 /**
  * Get data for the right sidebar (placeholder)
  */
-export function getrightSidebarData() {
+export function getrightSidebarData(parentfolder: string, type: string, path: string) {
+
+
+ 
+
+    if (type == 'folder'){
+        const node = treeObj?.getNode(path);
+        let foldermetadata = node?.readMeta()
+        return foldermetadata
+    }
+    else if (type =='file'){
+        let filename = path.split("/").pop()?.replace(/\.[^/.]+$/, "") ?? "";
+        const file = treeObj?.getFile(filename, path, parentfolder)
+        let filemetadata = file?.fileMetadata()
+        let fileinitial = file?.readInitial()
+
+        return {filemetadata, fileinitial}
+
+
+    }
+    
+
+
     return treeObj;
 }
 

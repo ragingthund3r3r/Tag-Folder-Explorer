@@ -408,7 +408,7 @@ export class TreeRoot implements ITreeRoot {
      * Navigates directly to the specified tag node and retrieves the file from it.
      * If tagpath is empty, searches in untagged files.
      * 
-     * @param filename - The name of the file
+     * @param filename - The name of the file (this is the filename without the extension)
      * @param filepath - The path of the file relative to vault root
      * @param tagpath - The path of the tag node parent (e.g., "subject/math"), or empty for untagged
      * @returns IFileLeaf | null - The found FileLeaf object, or null if not found
