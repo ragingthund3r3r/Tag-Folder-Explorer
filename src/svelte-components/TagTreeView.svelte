@@ -105,7 +105,7 @@
         </svg>
       </div>
       <div 
-        class="tree-item-inner nav-folder-title-content"
+        class="tree-item-inner nav-folder-title-content my-tree"
         role="button"
         tabindex="0"
         onclick={() => handleFolderClick(node.path)}
@@ -229,4 +229,11 @@
     font-size: 14px;
     padding: 12px;
   }
+
+
+  .my-tree {
+    width: 100%;
+  }
+
+  
 </style>

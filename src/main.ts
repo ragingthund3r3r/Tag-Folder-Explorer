@@ -16,7 +16,7 @@ import { TreeRoot } from './TreeRoot';
 // step 1
 import Counter from './svelte-components/Counter.svelte';
 import testsidebar from './svelte-components/test_sidebar.svelte';
-import DualSidebar from './svelte-components/DualSidebar.svelte';
+import TagExplorer from './svelte-components/TagExplorer.svelte';
 
 import { mount, unmount } from 'svelte';
 
@@ -28,7 +28,7 @@ import {DEFAULT_SETTINGS, TagFolderSettingTab} from "./settings";
 import type {TagFolderPluginSettings} from "./settings";
 
 const VIEW_TYPE_EXPLORER = 'explorer-view'
-const VIEW_TYPE_DUAL_SIDEBAR = 'dual-sidebar-view'
+const VIEW_TYPE_TAG_EXPLORER = 'tag-explorer-view'
 
 
 
@@ -91,19 +91,19 @@ class ExplorerView extends ItemView {
 
 
 
-class DualSidebarView extends ItemView {
-  component: ReturnType<typeof DualSidebar> | undefined;
+class TagExplorerView extends ItemView {
+  component: ReturnType<typeof TagExplorer> | undefined;
 
   constructor(leaf: WorkspaceLeaf) { 
     super(leaf) 
   }
 
   getViewType() { 
-    return VIEW_TYPE_DUAL_SIDEBAR 
+    return VIEW_TYPE_TAG_EXPLORER 
   }
 
   getDisplayText() { 
-    return 'Dual Sidebar View' 
+    return 'Tag Explorer' 
   }
 
   async onOpen() {
@@ -114,11 +114,11 @@ class DualSidebarView extends ItemView {
     const c = this.contentEl
     c.empty()
     
-    this.component = mount(DualSidebar, {
+    this.component = mount(TagExplorer, {
       target: this.contentEl
     });
     
-    console.log("Dual sidebar mounted")
+    console.log("Tag Explorer mounted")
   }
   
   async onClose() {
@@ -144,7 +144,7 @@ export default class TagFolderPlugin extends Plugin {
 		console.log('Tag Folder Plugin loaded');
 
     this.registerView(VIEW_TYPE_EXPLORER, leaf => new ExplorerView(leaf))
-    this.registerView(VIEW_TYPE_DUAL_SIDEBAR, leaf => new DualSidebarView(leaf))
+    this.registerView(VIEW_TYPE_TAG_EXPLORER, leaf => new TagExplorerView(leaf))
 
 		// Wait for the metadata cache to be fully resolved before computing the tree
 		// The metadata cache is populated asynchronously after vault load,
@@ -165,7 +165,7 @@ export default class TagFolderPlugin extends Plugin {
 
 
     this.addRibbonIcon('dice', 'Open Explorer', () => this.activateView())
-    this.addRibbonIcon('folder-tree', 'Open Dual Sidebar', () => this.activateDualView())
+    this.addRibbonIcon('folder-tree', 'Open Tag Explorer', () => this.activateTagExplorerView())
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new TagFolderSettingTab(this.app, this));
@@ -200,10 +200,10 @@ export default class TagFolderPlugin extends Plugin {
 
 
 
-  async activateDualView() {
+  async activateTagExplorerView() {
     const w = this.app.workspace
     let leaf = w.getLeaf(true)
-    await leaf.setViewState({ type: VIEW_TYPE_DUAL_SIDEBAR, active: true })
+    await leaf.setViewState({ type: VIEW_TYPE_TAG_EXPLORER, active: true })
     w.revealLeaf(leaf)
   }
 
