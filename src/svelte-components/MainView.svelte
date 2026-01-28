@@ -128,9 +128,28 @@
 		}
 	}
 
+
+
+  function handleMainViewClick() {
+      if (onFocusChange) {
+        onFocusChange('folder', currentPath);
+      }
+      
+  }
+
+
+
+  function handleItemClick(event: MouseEvent, handler: Function, item: any) {
+    // Stop event from bubbling to main-view
+    event.stopPropagation();
+    handler(item);
+  }
+
 </script>
 
-<div class="main-view-container">
+
+<!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
+<div class="main-view-container" onclick={handleMainViewClick}>
 
 
   <div class="main-content-area">
@@ -141,12 +160,12 @@
     {/if}
 
 
-<div class="main-view">
+<div class="main-view" >
   {#if mainViewData}
     <div class="file-grid">
       <!-- Render child folders/tags -->
       {#each mainViewData.children as child}
-        <div class="item folder" role="button" tabindex="0" onclick={() => handleFolderClick(child)}  ondblclick={() => handleFolderDblClick(child)} onkeydown={(e) => handleKeyDown(e, handleFolderDblClick, child)}>
+        <div class="item folder" role="button" tabindex="0" onclick={(e) => handleItemClick(e, handleFolderClick, child)}  ondblclick={(e) => { e.stopPropagation(); handleFolderDblClick(child); }} onkeydown={(e) => handleKeyDown(e, handleFolderDblClick, child)}>
           <div class="icon">📁</div>
           <div class="label">{child.name}</div>
         </div>
@@ -154,7 +173,7 @@
 
       <!-- Render files -->
       {#each mainViewData.files as file}
-        <div class="item file" role="button" tabindex="0" onclick={() => handleFileClick(file)} ondblclick={() => handleFileDblClick(file)} onkeydown={(e) => handleKeyDown(e, handleFileDblClick, file)}>
+        <div class="item file" role="button" tabindex="0" onclick={(e) => handleItemClick(e, handleFileClick, file)} ondblclick={(e) => { e.stopPropagation(); handleFileDblClick(file); }} onkeydown={(e) => handleKeyDown(e, handleFileDblClick, file)}>
           <div class="icon">📄</div>
           <div class="label">{file.name}</div>
         </div>

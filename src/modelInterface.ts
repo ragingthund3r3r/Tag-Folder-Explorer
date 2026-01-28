@@ -49,8 +49,10 @@ export function getrightSidebarData(parentfolder: string, type: string, path: st
         const file = treeObj?.getFile(filename, path, parentfolder)
         let filemetadata = file?.fileMetadata()
         let fileinitial = file?.readInitial()
+        let fileObsData = file?.fileObsCreateModDate()
 
-        return {filemetadata, fileinitial}
+
+        return {filemetadata, fileinitial, fileObsData}
 
 
     }

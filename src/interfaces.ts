@@ -144,6 +144,16 @@ export interface IFileLeaf {
      */
     fileMetadata(): Record<string, any>;
     
+
+    /**
+     * Reads the files created and modified timestamps created by obsidian. 
+     * 
+     * Returns an object.
+     * 
+     * @returns object - Object with two properties called ctime and mtime. 
+     */
+    fileObsCreateModDate(): object;
+
     /**
      * Reads the initial content of the file for preview
      * 

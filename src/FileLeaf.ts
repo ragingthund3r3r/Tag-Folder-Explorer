@@ -178,6 +178,28 @@ export class FileLeaf implements IFileLeaf {
         }
     }
     
+
+
+    /**
+     * Retrieves the file's creation and modification timestamps
+     * 
+     * Returns an object containing the file's creation date (ctime) and
+     * modification date (mtime) as stored by Obsidian. These are Unix timestamps
+     * in milliseconds.
+     * 
+     * @returns object - Object with ctime and mtime properties
+     * 
+     * Used when: Displaying file timestamps, sorting by date, file metadata display
+     */
+    public fileObsCreateModDate(): { ctime: number; mtime: number } {
+        return {
+            ctime: this.file.stat.ctime,
+            mtime: this.file.stat.mtime
+        };
+    }
+
+
+
     /**
      * Reads the initial content of the file for preview
      * 
