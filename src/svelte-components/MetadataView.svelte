@@ -43,6 +43,24 @@
             .filter(item => item !== null) as Array<{emoji: string, label: string}>;
     }
 
+    function formatTimestamp(timestamp: number): string {
+        if (!timestamp) return 'N/A';
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    function formatFieldName(fieldName: string): string {
+        // Convert field names like "modified" to "Modified"
+        return fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+    }
+
 
 </script>
 
@@ -121,6 +139,72 @@
     <div class="empty-state">
         <p>No metadata available</p>
     </div>
+    {/if}
+{/if}
+
+
+
+{#if focusedObjectType == 'file'}
+    {#if metadataViewData}
+    <div class="metadata-container">  
+      
+        <div class="folder-image-container">
+        <svg
+            class="folder-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--interactive-accent)"
+            stroke-width="1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+        </svg>
+
+
+        
+        </div>
+
+      {#if metadataViewData.filemetadata && Object.keys(metadataViewData.filemetadata).length > 0}
+      <div class="metadata-section">
+          <h5 class="metadata-title">File Metadata</h5>
+          {#each Object.entries(metadataViewData.filemetadata) as [key, value]}
+              <div class="metadata-field">
+                  <span class="field-label">{formatFieldName(key)}:</span>
+                  <span class="field-value">{value || 'N/A'}</span>
+              </div>
+          {/each}
+      </div>
+      {/if}
+
+      {#if metadataViewData.fileinitial}
+      <div class="metadata-section">
+          <h5 class="metadata-title">File Content</h5>
+          <div class="description-text">
+              {metadataViewData.fileinitial}  
+          </div>
+      </div>
+      {/if}
+
+      {#if metadataViewData.fileobsdata}
+      <div class="metadata-section">
+          <h5 class="metadata-title">Obsidian Information</h5>
+          <div class="metadata-field">
+              <span class="field-label">Created Time:</span>
+              <span class="field-value">{formatTimestamp(metadataViewData.fileobsdata.ctime)}</span>
+          </div>
+          <div class="metadata-field">
+              <span class="field-label">Modified Time:</span>
+              <span class="field-value">{formatTimestamp(metadataViewData.fileobsdata.mtime)}</span>
+          </div>
+      </div>
+      {/if}
+  </div>
+    {:else}
+        <div class="empty-state">
+            <p>No file data available</p>
+        </div>
     {/if}
 {/if}
 
@@ -243,4 +327,6 @@
     color: var(--text-muted);
     font-size: 13px;
   }
+
+
 </style>

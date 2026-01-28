@@ -111,6 +111,7 @@
       // Update focus state when file is opened
       if (onFocusChange) {
         onFocusChange('file', filepath);
+        // console.log("i just changed it to file")
       }
       
       clickTimeout = null;

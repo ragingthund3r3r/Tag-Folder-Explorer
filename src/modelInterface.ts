@@ -37,6 +37,11 @@ export function getleftSidebarTree() {
 export function getrightSidebarData(parentfolder: string, type: string, path: string) {
 
 
+    
+    // console.log("from inside modelInterface")
+    // console.log(type)
+    // console.log(path)
+
  
 
     if (type == 'folder'){
@@ -44,15 +49,21 @@ export function getrightSidebarData(parentfolder: string, type: string, path: st
         let foldermetadata = node?.readMeta()
         return foldermetadata
     }
-    else if (type =='file'){
+    if (type =='file'){
+        // console.log("from inside file")
         let filename = path.split("/").pop()?.replace(/\.[^/.]+$/, "") ?? "";
         const file = treeObj?.getFile(filename, path, parentfolder)
         let filemetadata = file?.fileMetadata()
         let fileinitial = file?.readInitial()
-        let fileObsData = file?.fileObsCreateModDate()
+        let fileobsdata = file?.fileObsCreateModDate()
 
 
-        return {filemetadata, fileinitial, fileObsData}
+
+        // console.log(filemetadata)
+        // console.log(fileinitial)
+        // console.log(fileobsdata)
+        // console.log("++++++++")
+        return {filemetadata, fileinitial, fileobsdata}
 
 
     }
