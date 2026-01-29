@@ -4,6 +4,15 @@
   import MainView from './MainView.svelte';
 	import MetadataView from './MetadataView.svelte';
 
+  import type {TagFolderPluginSettings} from '../settings';
+
+  // Props
+  interface Props {
+    settings?: TagFolderPluginSettings;
+  }
+
+  let { settings }: Props = $props();
+
   // State for sidebar collapse
   let leftCollapsed = $state(false);
   let rightCollapsed = $state(false);
@@ -125,7 +134,7 @@
     {#if !rightCollapsed}
       <div class="sidebar-content">
         <!-- Left sidebar content will go here -->  
-        <MetadataView  currentPath={currentPath} focusedObjectType={focusedObjectType} focusedObjectPath={focusedObjectPath} focusedObjectParent={focusedObjectParent}/>
+        <MetadataView  currentPath={currentPath} focusedObjectType={focusedObjectType} focusedObjectPath={focusedObjectPath} focusedObjectParent={focusedObjectParent} showObsMetaData={settings?.showObsMetaData} fieldsToSkip={settings?.fieldsToSkip}/>
       </div>
     {/if}
   </div>

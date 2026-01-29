@@ -8,13 +8,31 @@
         focusedObjectType: string ;
         focusedObjectPath: string ;
         focusedObjectParent: string ;
+        showObsMetaData?: boolean;
+        fieldsToSkip?: string;
     }
 
 
-    let { currentPath, focusedObjectType, focusedObjectPath, focusedObjectParent}:Props = $props();
+    let { currentPath, focusedObjectType, focusedObjectPath, focusedObjectParent, showObsMetaData = true, fieldsToSkip = ''}:Props = $props();
     
-    
+
     let metadataViewData: any | null = $derived(getrightSidebarData(focusedObjectParent, focusedObjectType, focusedObjectPath));
+
+    // Parse fieldsToSkip into a Set for efficient lookup
+    let fieldsToSkipSet = $derived.by(() => {
+        if (!fieldsToSkip) return new Set<string>();
+        return new Set(
+            fieldsToSkip
+                .split('\n')
+                .map(field => field.trim().toLowerCase())
+                .filter(field => field.length > 0)
+        );
+    });
+
+    // Helper function to check if a field should be displayed
+    function shouldDisplayField(fieldName: string): boolean {
+        return !fieldsToSkipSet.has(fieldName.toLowerCase());
+    }
  
     function formatDate(dateString: string): string {
         if (!dateString) return 'N/A';
@@ -205,15 +223,18 @@
         </div>
 
       {#if metadataViewData.filemetadata && Object.keys(metadataViewData.filemetadata).length > 0}
+      {@const filteredMetadata = Object.entries(metadataViewData.filemetadata).filter(([key]) => shouldDisplayField(key))}
+      {#if filteredMetadata.length > 0}
       <div class="metadata-section">
           <h5 class="metadata-title">File Metadata</h5>
-          {#each Object.entries(metadataViewData.filemetadata) as [key, value]}
+          {#each filteredMetadata as [key, value]}
               <div class="metadata-field">
                   <span class="field-label">{formatFieldName(key)}:</span>
                   <span class="field-value">{value || 'N/A'}</span>
               </div>
           {/each}
       </div>
+      {/if}
       {/if}
 
       {#if metadataViewData.fileinitial}
@@ -225,7 +246,7 @@
       </div>
       {/if}
 
-      {#if metadataViewData.fileobsdata}
+      {#if metadataViewData.fileobsdata && showObsMetaData}
       <div class="metadata-section">
           <h5 class="metadata-title">Obsidian Information</h5>
           <div class="metadata-field">

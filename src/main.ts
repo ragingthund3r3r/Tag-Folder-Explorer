@@ -94,9 +94,11 @@ class ExplorerView extends ItemView {
 
 class TagExplorerView extends ItemView {
   component: ReturnType<typeof TagExplorer> | undefined;
+  plugin: TagFolderPlugin;
 
-  constructor(leaf: WorkspaceLeaf) { 
-    super(leaf) 
+  constructor(leaf: WorkspaceLeaf, plugin: TagFolderPlugin) { 
+    super(leaf)
+    this.plugin = plugin;
   }
 
   getViewType() { 
@@ -116,7 +118,10 @@ class TagExplorerView extends ItemView {
     c.empty()
     
     this.component = mount(TagExplorer, {
-      target: this.contentEl
+      target: this.contentEl,
+      props: {
+        settings: this.plugin.settings
+      }
     });
     
     console.log("Tag Explorer mounted")
@@ -145,7 +150,7 @@ export default class TagFolderPlugin extends Plugin {
 		console.log('Tag Folder Plugin loaded');
 
     this.registerView(VIEW_TYPE_EXPLORER, leaf => new ExplorerView(leaf))
-    this.registerView(VIEW_TYPE_TAG_EXPLORER, leaf => new TagExplorerView(leaf))
+    this.registerView(VIEW_TYPE_TAG_EXPLORER, leaf => new TagExplorerView(leaf, this))
 
 		// Wait for the metadata cache to be fully resolved before computing the tree
 		// The metadata cache is populated asynchronously after vault load,
