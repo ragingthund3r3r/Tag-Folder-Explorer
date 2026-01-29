@@ -7,7 +7,7 @@
   interface Props {
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
-    onFocusChange?: (type: 'folder' | 'file', path: string) => void;  // Handler for focus changes
+    onFocusChange?: (type: 'folder' | 'file', path: string, parentpath: string) => void;  // Handler for focus changes
   }
 
 
@@ -38,6 +38,7 @@
  
     let foldername = folder.name
     let folderpath = folder.path
+    let oldpath = currentPath
 		// console.log('Folder clicked!');
     // console.log(foldername+" "+folderpath)
 
@@ -45,7 +46,7 @@
     
     // Update focus state when folder is opened
     if (onFocusChange) {
-      onFocusChange('folder', folderpath);
+      onFocusChange('folder', folderpath, oldpath);
     }
 
     
@@ -62,13 +63,14 @@
 
 		// console.log('File clicked!');
     let filepath = file.path
+    let oldpath = currentPath
 
     // console.log(filepath)
     openFileInNewTab(filepath)
     
     // Update focus state when file is opened
     if (onFocusChange) {
-      onFocusChange('file', filepath);
+      onFocusChange('file', filepath, oldpath);
     }
 	}
 
@@ -88,7 +90,7 @@
       
       // Update focus state when folder is opened
       if (onFocusChange) {
-        onFocusChange('folder', folderpath);
+        onFocusChange('folder', folderpath, currentPath);
       }
       
       clickTimeout = null;
@@ -106,11 +108,15 @@
     clickTimeout = window.setTimeout(() => {
       // console.log('File clicked!');
       let filepath = file.path
+      let oldpath = currentPath
 
+      // console.log("file path from main view")
+      // console.log(filepath)
+      
       
       // Update focus state when file is opened
       if (onFocusChange) {
-        onFocusChange('file', filepath);
+        onFocusChange('file', filepath, oldpath);
         // console.log("i just changed it to file")
       }
       
@@ -133,7 +139,7 @@
 
   function handleMainViewClick() {
       if (onFocusChange) {
-        onFocusChange('folder', currentPath);
+        onFocusChange('folder', currentPath, "");
       }
       
   }

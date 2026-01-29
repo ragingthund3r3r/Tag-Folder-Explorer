@@ -279,7 +279,7 @@ export class TreeRoot implements ITreeRoot {
                 return null;
             },
             
-            readMeta: () => ({}),
+            readMeta: () => ({name:"", path:""}),
             renameNode: (newName: string) => false,
             editPath: (newPath: string) => false,
             updateMeta: (payload: Record<string, any>) => false,

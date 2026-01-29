@@ -7,7 +7,7 @@
   interface Props {
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
-    onFocusChange?: (type: 'folder' | 'file', path: string) => void;  // Handler for focus changes
+    onFocusChange?: (type: 'folder' | 'file', path: string, parentpath: string) => void;  // Handler for focus changes
   }
   
   // Type definitions
@@ -33,7 +33,6 @@
   // State
   let treeData = $state<TreeData>(getleftSidebarTree() as TreeData)
   let expandedTags = $state<Set<string>>(new Set())
-  let selectedFile = $state<string | null>(null)
 
 
   let { currentPath, onUpdate, onFocusChange }:Props = $props();
@@ -50,16 +49,12 @@
     expandedTags = new Set(expandedTags); // trigger reactivity
   }
 
-  function selectFile(path: string) {
-    selectedFile = path;
-    console.log('Selected file:', path);
-  }
 
   function isExpanded(path: string): boolean {
     return expandedTags.has(path);
   }
 
-  function handleFolderClick(folder:string) {
+  function handleFolderClick(folder:string, parentPath: string = '') {
 
  
     let folderpath = folder
@@ -69,22 +64,28 @@
     onUpdate(folderpath);
 
     if (onFocusChange) {
-      onFocusChange('folder', folderpath);
+      onFocusChange('folder', folderpath, parentPath);
     } 
 
 	}
 
-  function handleFileClick(file:string) {
+  function handleFileClick(file:string, parentPath: string = '') {
 
 		// console.log('File clicked!');
     let filepath = file
 
+    
+    if (onFocusChange) {
+      onFocusChange('file', filepath, parentPath);
+    }
+
     // console.log(filepath)
     openFileInNewTab(filepath)
 
-    if (onFocusChange) {
-      onFocusChange('file', filepath);
-    }
+    // console.log("file path from tree view")
+    // console.log(filepath)
+
+
 	}
 
 
@@ -92,7 +93,7 @@
 
 </script>
 
-{#snippet renderTagNode(node: TagNodeData)}
+{#snippet renderTagNode(node: TagNodeData, parentPath: string = '')}
   <!-- Tag/Folder Item using Obsidian's native classes -->
   <div class="tree-item nav-folder" class:is-collapsed={!isExpanded(node.path)}>
     <div 
@@ -115,8 +116,8 @@
         class="tree-item-inner nav-folder-title-content my-tree"
         role="button"
         tabindex="0"
-        onclick={() => handleFolderClick(node.path)}
-        onkeydown={(e) => e.key === 'Enter' && handleFolderClick(node.path)}
+        onclick={() => handleFolderClick(node.path, parentPath)}
+        onkeydown={(e) => e.key === 'Enter' && handleFolderClick(node.path, parentPath)}
       >{node.name}</div>
       <div class="tree-item-flair-outer">
         <span class="tree-item-flair">{node.totalFileCount}</span>
@@ -131,12 +132,11 @@
             <div class="tree-item nav-file">
               <div 
                 class="tree-item-self nav-file-title tappable is-clickable"
-                class:is-active={selectedFile === file.path}
                 data-path={file.path}
                 role="button"
                 tabindex="0"
-                onclick={() => handleFileClick(file.path)}
-                onkeydown={(e) => e.key === 'Enter' && handleFileClick(file.path)}
+                onclick={() => handleFileClick(file.path, node.path)}
+                onkeydown={(e) => e.key === 'Enter' && handleFileClick(file.path, node.path)}
               >
                 <div class="tree-item-inner nav-file-title-content">{file.name}</div>
               </div>
@@ -147,7 +147,7 @@
         <!-- Render child tags -->
         {#if node.children && node.children.length > 0}
           {#each node.children as child}
-            {@render renderTagNode(child)}
+            {@render renderTagNode(child, node.path)}
           {/each}
         {/if}
       </div>
@@ -190,15 +190,16 @@
               <div class="tree-item nav-file">
                 <div 
                   class="tree-item-self nav-file-title tappable is-clickable"
-                  class:is-active={selectedFile === file.path}
+
                   data-path={file.path}
                   role="button"
                   tabindex="0"
-                  onclick={() => selectFile(file.path)}
-                  onkeydown={(e) => e.key === 'Enter' && selectFile(file.path)}
+                onclick={() => handleFileClick(file.path, '')}
+                onkeydown={(e) => e.key === 'Enter' && handleFileClick(file.path, '__untagged__')}
                 >
                   <div class="tree-item-inner nav-file-title-content">{file.name}</div>
                 </div>
+                
               </div>
             {/each}
           </div>

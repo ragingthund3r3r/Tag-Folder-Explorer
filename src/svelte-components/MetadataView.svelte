@@ -7,13 +7,14 @@
         currentPath: string;
         focusedObjectType: string ;
         focusedObjectPath: string ;
+        focusedObjectParent: string ;
     }
 
 
-    let { currentPath, focusedObjectType, focusedObjectPath}:Props = $props();
+    let { currentPath, focusedObjectType, focusedObjectPath, focusedObjectParent}:Props = $props();
     
     
-    let metadataViewData: any | null = $derived(getrightSidebarData(currentPath, focusedObjectType, focusedObjectPath));
+    let metadataViewData: any | null = $derived(getrightSidebarData(focusedObjectParent, focusedObjectType, focusedObjectPath));
  
     function formatDate(dateString: string): string {
         if (!dateString) return 'N/A';
@@ -66,9 +67,9 @@
 
 
 {#if focusedObjectType == 'folder'}
-    {#if metadataViewData}
+    {#if metadataViewData.name== "" }
     <div class="metadata-container">
-
+        
         <div class="folder-image-container">
         <svg
             class="folder-icon"
@@ -89,56 +90,93 @@
         
             <div class="metadata-field">
                 <span class="field-label">Name:</span>
-                <span class="field-value">{metadataViewData.name || 'N/A'}</span>
+                <span class="field-value">Home</span>
             </div>
             
             <div class="metadata-field">
                 <span class="field-label">Path:</span>
-                <span class="field-value path">{metadataViewData.path || 'N/A'}</span>
+                <span class="field-value path">/</span>
             </div>
-
-            <div class="metadata-field">
-                <span class="field-label">Created:</span>
-                <span class="field-value">{formatDate(metadataViewData.created)}</span>
-            </div>
-            
-            <div class="metadata-field">
-                <span class="field-label">Modified:</span>
-                <span class="field-value">{formatDate(metadataViewData.modified)}</span>
-            </div>
-
 
         </div>
 
-
-
-        {#if metadataViewData.description}
-        <div class="metadata-section">
-            <h5 class="metadata-title">Description</h5>
-            <div class="description-text">
-                {metadataViewData.description}
-            </div>
-        </div>
-        {/if}
-
-        {#if metadataViewData.legend}
-        <div class="metadata-section">
-            <h5 class="metadata-title">Legend</h5>
-            <div class="legend-list">
-                {#each parseLegend(metadataViewData.legend) as item}
-                    <div class="legend-item">
-                        <span class="legend-emoji">{item.emoji}</span>
-                        <span class="legend-label">{item.label}</span>
-                    </div>
-                {/each}
-            </div>
-        </div>
-        {/if}
     </div>
     {:else}
-    <div class="empty-state">
-        <p>No metadata available</p>
-    </div>
+        {#if metadataViewData}
+        <div class="metadata-container">
+
+            <div class="folder-image-container">
+            <svg
+                class="folder-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--interactive-accent)"
+                stroke-width="1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            </div>
+
+
+            <div class="metadata-section">
+            
+                <div class="metadata-field">
+                    <span class="field-label">Name:</span>
+                    <span class="field-value">{metadataViewData.name || 'N/A'}</span>
+                </div>
+                
+                <div class="metadata-field">
+                    <span class="field-label">Path:</span>
+                    <span class="field-value path">{metadataViewData.path || 'N/A'}</span>
+                </div>
+
+                <div class="metadata-field">
+                    <span class="field-label">Created:</span>
+                    <span class="field-value">{formatDate(metadataViewData.created)}</span>
+                </div>
+                
+                <div class="metadata-field">
+                    <span class="field-label">Modified:</span>
+                    <span class="field-value">{formatDate(metadataViewData.modified)}</span>
+                </div>
+
+
+            </div>
+
+
+
+            {#if metadataViewData.description}
+            <div class="metadata-section">
+                <h5 class="metadata-title">Description</h5>
+                <div class="description-text">
+                    {metadataViewData.description}
+                </div>
+            </div>
+            {/if}
+
+            {#if metadataViewData.legend}
+            <div class="metadata-section">
+                <h5 class="metadata-title">Legend</h5>
+                <div class="legend-list">
+                    {#each parseLegend(metadataViewData.legend) as item}
+                        <div class="legend-item">
+                            <span class="legend-emoji">{item.emoji}</span>
+                            <span class="legend-label">{item.label}</span>
+                        </div>
+                    {/each}
+                </div>
+            </div>
+            {/if}
+        </div>
+        {:else}
+        <div class="empty-state">
+            <p>No metadata available</p>
+        </div>
+        {/if}
+
     {/if}
 {/if}
 

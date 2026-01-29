@@ -15,6 +15,7 @@
   // State for currently focused object
   let focusedObjectType = $state<'folder' | 'file' >('folder');
   let focusedObjectPath = $state<string>("");
+  let focusedObjectParent = $state<string>("");
   
   // focusedObjectPath will store:
   // - Tag path (e.g., "programming/typescript") if focusedObjectType is 'folder'
@@ -31,9 +32,10 @@
   }
 
   // Handle updates to focused object
-  function handleFocusChange(type: 'folder' | 'file', path: string) {
+  function handleFocusChange(type: 'folder' | 'file', path: string, parentpath: string) {
     focusedObjectType = type;
     focusedObjectPath = path;
+    focusedObjectParent = parentpath
     console.log("__")
     console.log(type)
     console.log(path)
@@ -122,8 +124,8 @@
     </div>
     {#if !rightCollapsed}
       <div class="sidebar-content">
-        <!-- Left sidebar content will go here --> 
-        <MetadataView  currentPath={currentPath} focusedObjectType={focusedObjectType} focusedObjectPath={focusedObjectPath}/>
+        <!-- Left sidebar content will go here -->  
+        <MetadataView  currentPath={currentPath} focusedObjectType={focusedObjectType} focusedObjectPath={focusedObjectPath} focusedObjectParent={focusedObjectParent}/>
       </div>
     {/if}
   </div>
@@ -221,6 +223,7 @@
   .sidebar-content {
     flex: 1;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     padding: 12px;
   }
 
