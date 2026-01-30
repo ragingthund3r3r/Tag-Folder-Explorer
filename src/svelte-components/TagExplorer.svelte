@@ -6,6 +6,12 @@
 
   import type {TagFolderPluginSettings} from '../settings';
 
+  import {getVaultName} from '../modelInterface'
+
+
+ 
+  let currVaultName  = getVaultName()
+
   // Props
   interface Props {
     settings?: TagFolderPluginSettings;
@@ -54,6 +60,18 @@
   function handleUpdate(newData: string) {
     currentPath = newData;
   }
+
+
+  function goToParentFolder(){
+
+    let tempCurrPath = currentPath
+    let lastSlash = tempCurrPath.lastIndexOf("/");
+    let newpath = lastSlash === -1 ? "" : tempCurrPath.slice(0, lastSlash);
+    currentPath = newpath
+
+    handleFocusChange('folder', currentPath, tempCurrPath)
+
+  }
 </script>
 
 
@@ -98,7 +116,42 @@
 
     <div class="main-header">
 
-      <span class="main-title"><strong style="color: var(--color-base-60);">Home:/</strong>{currentPath}</span>
+
+      <div class="button-holder">
+        <div class="header-button">
+          <svg style="padding:2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-left-icon lucide-arrow-big-left"><path d="M13 9a1 1 0 0 1-1-1V5.061a1 1 0 0 0-1.811-.75l-6.835 6.836a1.207 1.207 0 0 0 0 1.707l6.835 6.835a1 1 0 0 0 1.811-.75V16a1 1 0 0 1 1-1h6a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1z"/></svg>
+        </div>
+        <div class="header-button">
+          <svg style="padding:2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-big-right-icon lucide-arrow-big-right"><path d="M11 9a1 1 0 0 0 1-1V5.061a1 1 0 0 1 1.811-.75l6.836 6.836a1.207 1.207 0 0 1 0 1.707l-6.836 6.835a1 1 0 0 1-1.811-.75V16a1 1 0 0 0-1-1H5a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z"/></svg>
+        </div>
+      </div>
+
+
+      <div class="header-button">
+        <svg style="padding:2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-house-icon lucide-house"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </div>
+
+
+
+      <div class="path-holder">
+        <span class="main-title"><strong style="color: var(--color-base-60);">{currVaultName}:/</strong>{currentPath}</span>
+      </div>
+
+      <div class="header-button">
+        <svg style="padding:2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      </div>
+
+
+      <div 
+      class="header-button"
+      role="button"
+      tabindex="0"
+      onclick={() => goToParentFolder()}
+      onkeydown={(e) => e.key === 'Enter' && goToParentFolder()}
+      >
+        <svg style="padding:2px" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-folder-output-icon lucide-folder-output"><path d="M2 7.5V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-1.5"/><path d="M2 13h10"/><path d="m5 10-3 3 3 3"/></svg>
+      </div>
+
 
 
     </div>
@@ -293,9 +346,12 @@
 
   .main-header {
     display: flex;
+    flex-direction:row;
     align-items: center;
     
-    padding: 8px;
+    padding: 5px;
+    padding-left: 0px;
+    padding-right: 0px;
     border-bottom: 1px solid var(--background-modifier-border);
     background-color: var(--background-secondary-alt);
     min-height: 40px;
@@ -317,5 +373,50 @@
     z-index: 9;
   }
 
+
+.button-holder{
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* vertical centering */
+
+  height: 100%;
+  margin-right: 5px;
+}
+
+.header-button{
+  height: 100%;
+  aspect-ratio: 1 / 1; 
+  background-color: var(--background-primary-alt);; /* your hex color */
+  border-radius: 10px;
+  padding:5px;
+  margin-left:3px;
+  margin-right:3px; 
+
+  display: grid ;
+  align-items: center; /* vertical centering */
+  place-items: center;
+
+  cursor: pointer;
+  transition: background-color 0.2s ease; /* smooth hover */
+}
+
+
+.header-button:hover {
+  background-color: var(--background-primary);
+  /* or a hex value like #e2e2e2 */
+}
+
+.header-button:active {
+  transform: scale(0.96);
+}
+.path-holder{
+  flex:1;
+  background-color: var(--background-primary-alt);; /* your hex color */
+  border-radius: 16px;
+  height: 100%;
+  display: grid ;
+  align-items: center; /* vertical centering */
+  padding-left: 10px;
+}
   
 </style>

@@ -83,3 +83,10 @@ export function getmainViewData(currpath: string): ISerializedTagNode | null {
     
 
 }
+
+export function getVaultName():string{
+    if (!treeObj) {
+        return '';
+    }
+    return treeObj.getApp().vault.getName();
+}

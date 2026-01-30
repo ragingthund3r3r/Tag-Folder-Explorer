@@ -115,6 +115,17 @@ export class TreeRoot implements ITreeRoot {
     }
     
     /**
+     * Gets the Obsidian App instance
+     * 
+     * @returns App - The Obsidian App instance used by this TreeRoot
+     * 
+     * Used when: Accessing vault operations from external code
+     */
+    public getApp(): App {
+        return this.app;
+    }
+    
+    /**
      * Gets a readonly JSON representation of the sorted tree
      * Currently returns the raw tree structure; sorting implementations can be added later.
      * 
