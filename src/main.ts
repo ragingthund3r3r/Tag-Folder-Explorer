@@ -15,8 +15,8 @@ import { TreeRoot } from './TreeRoot';
 // Import the Counter Svelte component and the `mount` and `unmount` methods.
 
 // step 1
-import Counter from './svelte-components/Counter.svelte';
-import testsidebar from './svelte-components/test_sidebar.svelte';
+
+import testsidebar from './svelte-components/dummy/test_sidebar.svelte';
 import TagExplorer from './svelte-components/TagExplorer.svelte';
 
 import { mount, unmount } from 'svelte';
@@ -37,7 +37,7 @@ const VIEW_TYPE_TAG_EXPLORER = 'tag-explorer-view'
 class ExplorerView extends ItemView {
 
   // step 2
-  counter: ReturnType<typeof Counter> | undefined;
+
   sidebar: ReturnType<typeof testsidebar> | undefined;
 
 
@@ -80,9 +80,9 @@ class ExplorerView extends ItemView {
 
   
   async onClose() {
-    if (this.counter) {
+    if (this.sidebar) {
       // Remove the Counter from the ItemView.
-      unmount(this.counter);
+      unmount(this.sidebar);
     }
 
 
