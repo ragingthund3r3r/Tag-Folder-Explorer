@@ -8,6 +8,8 @@
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
     onFocusChange?: (type: 'folder' | 'file', path: string, parentpath: string) => void;  // Handler for focus changes
+    initialTreeData?: unknown;
+    initialVersion?: number;
   }
   
   // Type definitions
@@ -30,14 +32,25 @@
     untaggedFiles: FileData[];
   }
 
-  // State
-  let treeData = $state<TreeData>(getleftSidebarTree() as TreeData)
+  let { currentPath, onUpdate, onFocusChange, initialTreeData, initialVersion = 0 }:Props = $props();
+
+  // State - Initialize with provided data or fetch from backend
+  let treeData = $state<TreeData>(
+    initialTreeData 
+      ? (initialTreeData as TreeData) 
+      : (getleftSidebarTree().tree as TreeData)
+  );
+  let treeVersion = $state<number>(initialVersion);
   let expandedTags = $state<Set<string>>(new Set())
 
-
-  let { currentPath, onUpdate, onFocusChange }:Props = $props();
-
-  treeData = getleftSidebarTree() as TreeData;
+  /**
+   * Update tree data - called when the backend broadcasts an update
+   */
+  export function updateTreeData(newTreeData: unknown, newVersion: number): void {
+    treeData = newTreeData as TreeData;
+    treeVersion = newVersion;
+    console.log("TagTreeView updated to version:", newVersion);
+  }
 
 
   function toggleTag(path: string) {

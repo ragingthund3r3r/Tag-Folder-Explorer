@@ -8,15 +8,20 @@
     currentPath: string;
     onUpdate: (newPath: string) => void;  // Add function signature
     onFocusChange?: (type: 'folder' | 'file', path: string, parentpath: string) => void;  // Handler for focus changes
+    refreshKey?: number;  // Key to force re-derivation of mainViewData
   }
 
 
-  let { currentPath, onUpdate, onFocusChange }:Props = $props();
+  let { currentPath, onUpdate, onFocusChange, refreshKey = 0 }:Props = $props();
   // let { currentPath }: Props = $props();
 
 
 
-  let mainViewData: ISerializedTagNode | null = $derived(getmainViewData(currentPath));
+  let mainViewData: ISerializedTagNode | null = $derived.by(() => {
+    // Include refreshKey in the derivation to force recalculation when it changes
+    void refreshKey;
+    return getmainViewData(currentPath);
+  });
 
   
   // console.log("im tesing ")

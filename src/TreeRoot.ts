@@ -43,7 +43,20 @@ export class TreeRoot implements ITreeRoot {
     private app: App;
     
    
-    private settings: TagFolderPluginSettings 
+    private settings: TagFolderPluginSettings;
+    
+    /**
+     * Version counter that tracks the state of the serialized tree.
+     * Incremented every time the tree is recomputed or serialized tree changes.
+     * Used for synchronization between backend and frontend views.
+     */
+    private treeVersion: number = 0;
+    
+    /**
+     * Cache of the last serialized tree to avoid recomputation.
+     * Invalidated whenever tree structure changes.
+     */
+    private cachedSerializedTree: unknown = null 
 
 
 
@@ -128,15 +141,41 @@ export class TreeRoot implements ITreeRoot {
     /**
      * Gets a readonly JSON representation of the sorted tree
      * Currently returns the raw tree structure; sorting implementations can be added later.
+     * Uses caching to avoid redundant serialization.
      * 
      * @returns unknown - JSON representation of the tree structure
      * 
      * Used when: Frontend rendering, static tree snapshots, tree serialization
      */
     public getSortedTree(): unknown {
-        // TODO: Implement sorting and flattening to JSON
-        // For now, return the tree structure as-is
-        return this.serializeTree();
+        // Return cached version if available
+        if (this.cachedSerializedTree !== null) {
+            return this.cachedSerializedTree;
+        }
+        
+        // Serialize and cache the tree
+        this.cachedSerializedTree = this.serializeTree();
+        return this.cachedSerializedTree;
+    }
+    
+    /**
+     * Gets the current tree version counter
+     * 
+     * @returns number - The current version counter
+     * 
+     * Used when: Views need to check if their cached tree is up-to-date
+     */
+    public getTreeVersion(): number {
+        return this.treeVersion;
+    }
+    
+    /**
+     * Invalidates the cached serialized tree and increments version.
+     * Should be called whenever the tree structure is modified without full recomputation.
+     */
+    public invalidateCache(): void {
+        this.cachedSerializedTree = null;
+        this.treeVersion++;
     }
     
     /**
@@ -484,6 +523,10 @@ export class TreeRoot implements ITreeRoot {
 
         // After computing tree from files, populate empty tag folders from metadata
         this.populateEmptyTagFoldersFromMetadata();
+        
+        // Increment version counter and invalidate cache after tree recomputation
+        this.treeVersion++;
+        this.cachedSerializedTree = null;
     }
     
     /**

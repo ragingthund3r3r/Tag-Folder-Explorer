@@ -15,9 +15,11 @@
   // Props
   interface Props {
     settings?: TagFolderPluginSettings;
+    initialTreeData?: unknown;
+    initialVersion?: number;
   }
 
-  let { settings }: Props = $props();
+  let { settings, initialTreeData, initialVersion = 0 }: Props = $props();
 
   // State for sidebar collapse
   let leftCollapsed = $state(false);
@@ -32,11 +34,45 @@
   let focusedObjectPath = $state<string>("");
   let focusedObjectParent = $state<string>("");
   
+  // Tree state management
+  let treeData = $state<unknown>(initialTreeData);
+  let treeVersion = $state<number>(initialVersion);
+  
+  // Reference to TagTreeView component for updates
+  let tagTreeViewRef: any = $state(null);
+  
+  // Reference to MainView component for updates
+  let mainViewRef: any = $state(null);
+  
+  // Trigger for forcing MainView to re-derive its data
+  let mainViewRefreshKey = $state(0);
+  
   // focusedObjectPath will store:
   // - Tag path (e.g., "programming/typescript") if focusedObjectType is 'folder'
   // - Physical file path (e.g., "path/to/file.md") if focusedObjectType is 'file'
 
-
+  /**
+   * Update tree data - called by TagExplorerView when tree changes
+   * This function is exported and called from the TypeScript side
+   */
+  export function updateTreeData(newTreeData: unknown, newVersion: number): void {
+    treeData = newTreeData;
+    treeVersion = newVersion;
+    
+    // Notify the TagTreeView component to update
+    if (tagTreeViewRef?.updateTreeData) {
+      tagTreeViewRef.updateTreeData(newTreeData, newVersion);
+    }
+  }
+  
+  /**
+   * Refresh the current node in the main view
+   * Called when tree changes to ensure main view shows updated node data
+   */
+  export function refreshCurrentNode(): void {
+    // Increment key to force MainView to re-derive its data
+    mainViewRefreshKey++;
+  }
 
   function toggleLeft() {
     leftCollapsed = !leftCollapsed;
@@ -118,7 +154,14 @@
     </div>
     <div class="sidebar-content" class:hidden={leftCollapsed}>
       <!-- Left sidebar content - Tag Tree -->
-      <TagTreeView currentPath={currentPath}  onUpdate={handleUpdate} onFocusChange={handleFocusChange}  />
+      <TagTreeView 
+        bind:this={tagTreeViewRef}
+        currentPath={currentPath}  
+        onUpdate={handleUpdate} 
+        onFocusChange={handleFocusChange}
+        initialTreeData={treeData}
+        initialVersion={treeVersion}
+      />
     </div>
   </div>
 
@@ -194,7 +237,13 @@
 
     </div>
 
-    <MainView currentPath={currentPath}  onUpdate={handleUpdate} onFocusChange={handleFocusChange} />
+    <MainView 
+      bind:this={mainViewRef}
+      currentPath={currentPath}  
+      onUpdate={handleUpdate} 
+      onFocusChange={handleFocusChange}
+      refreshKey={mainViewRefreshKey}
+    />
   </div>
 
 

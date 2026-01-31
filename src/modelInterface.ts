@@ -15,13 +15,27 @@ export function initModelInterface(treer: TreeRoot) {
 
 /**
  * Get the serialized tree structure for the left sidebar
- * Returns the complete tag tree with root tags and untagged files
+ * Returns the complete tag tree with root tags and untagged files along with version
  */
 export function getleftSidebarTree() {
     if (!treeObj) {
-        return { rootTags: [], untaggedFiles: [] };
+        return { 
+            tree: { rootTags: [], untaggedFiles: [] },
+            version: 0
+        };
     }
-    return treeObj.getSortedTree();
+    return {
+        tree: treeObj.getSortedTree(),
+        version: treeObj.getTreeVersion()
+    };
+}
+
+/**
+ * Get only the current tree version without the full tree data
+ * Used for checking if a view needs to update
+ */
+export function getTreeVersion(): number {
+    return treeObj?.getTreeVersion() ?? 0;
 }
 
 
